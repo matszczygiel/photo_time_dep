@@ -44,21 +44,25 @@ struct GTOPW_contraction {
     int functions_number_crt() const;
 };
 
-std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs);
+std::ostream &operator<<(std::ostream &os, const GTOPW_contraction &rhs);
 
 struct Atom {
-    std::string label;
-    double charge;
-    Vec3d position;
-    std::vector<GTOPW_contraction> contractions;
+    std::string label{};
+    double charge{0.0};
+    Vec3d position{0, 0, 0};
+    std::vector<GTOPW_contraction> contractions{};
 
-    bool read(std::istream &is, const std::string& end_token = "$END");
+    bool read(std::istream &is, const std::string &end_token = "$END");
+    int functions_number_sph() const;
+    int functions_number_crt() const;
 };
 
-struct Basis {
-    std::vector<Atom> basis{};
+std::ostream &operator<<(std::ostream &os, const Atom &rhs);
 
-    bool read(std::istream &is, const std::string& start_token = "$BASIS", const std::string& end_token = "$END");
+struct Basis {
+    std::vector<Atom> atoms{};
+
+    bool read(std::istream &is, const std::string &start_token = "$BASIS", const std::string &end_token = "$END");
     int functions_number_sph() const;
     int functions_number_crt() const;
     Shell get_max_shell() const;
