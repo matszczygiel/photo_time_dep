@@ -14,9 +14,8 @@ static constexpr std::map<char, int> shell_charmap = {{'S', 0},
                                                       {'L', 8}};
 
 static constexpr std::array<int, 11> shell_crt_siz = {1, 3, 6, 10, 15, 21, 28, 36, 45, 55};
-static constexpr std::array<int, 11> shell_sph_siz = {1, 3, 6, 10, 15, 21, 28, 36, 45, 55};
-static constexpr std::array<char, 11> shell_labels  = {'S', 'P', 'D', 'F', 'G', 'H', 'I', 'K', 'L'};
-
+static constexpr std::array<int, 11> shell_sph_siz = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+static constexpr std::array<char, 11> shell_labels = {'S', 'P', 'D', 'F', 'G', 'H', 'I', 'K', 'L'};
 
 Shell char_to_shell(const char &c) {
     return static_cast<Shell>(shell_charmap.at(c));
@@ -30,46 +29,116 @@ int shell_to_int(const Shell &shell) {
     return static_cast<int>(shell);
 }
 
-struct GTOPW_primitive {
-    double exp{0};
-    cdouble coef{0};
-    Vec3d k{0, 0, 0};
+bool GTOPW_primitive::read(std::istream &is) {
+    std::string line;
+    if (!getline(is, line))
+        throw std::runtime_error("Invalind gtopw contraction read - check file.");
 
-    bool read(std::istream &is);
-};
+    std::istringstream ssl(line);
+    int gnum;
+    ssl >> gnum;
 
-std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs);
+    double re, im;
+    ssl >> exp >> re >> im;
+    coef = cdouble(re, im);
 
-struct GTOPW_contraction {
-    Shell shl{Shell::S};
-    std::vector<GTOPW_primitive> gtopws{};
+    ssl >> k[0] >> k[1] >> k[2];
+    return true;
+}
 
-    bool read(std::istream &is);
-    int functions_number() const;
-};
+std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs) {
+}
 
-std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs);
+bool GTOPW_contraction::read(std::istream &is) {
+    std::string line;
+    if (!getline(is, line))
+        return false;
+    if (line.empty())
+        return false;
 
-struct Atom {
-    std::string label;
-    double charge;
-    Vec3d position;
-    std::vector<GTOPW_contraction> contractions;
-};
+    std::istringstream ss(line);
 
-struct Basis {
-    std::vector<Atom> basis{};
+    const char moment = ss.get();
+    shl               = char_to_shell(moment);
 
-    bool read(std::istream &is);
-    int functions_number() const;
-    Shell get_max_shell() const;
-    void truncate_at(const Shell &shl);
-};
+    int size;
+    ss >> size;
+    gtopws.clear();
+    gtopws.reserve(size);
 
-std::ostream &operator<<(std::ostream &os, const Basis &rhs);
+    for (int i = 0; i < size; ++i) {
+        gtopws.emplace_back(GTOPW_primitive());
+        gtopws.back().read(is);
+    }
 
+    return true;
+}
 
+int GTOPW_contraction::functions_number_sph() const {
+}
 
+int GTOPW_contraction::functions_number_crt() const {
+}
+
+std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs) {
+}
+
+bool Atom::read(std::istream &is, const std::string &end_token) {
+    std::string line;
+    if (!getline(is, line))
+        return false;
+    if (line.empty())
+        return false;
+
+    std::istringstream ss(line);
+    std::string token;
+    ss >> token;
+    if (token == end_token)
+        return false;
+
+    label = token;
+    ss >> charge;
+    ss >> position[0] >> position[1] >> position[2];
+    contractions.clear();
+
+    GTOPW_contraction g;
+    while (g.read(is))
+        contractions.push_back(g);
+
+    return true;
+}
+
+bool Basis::read(std::istream &is, const std::string &start_token, const std::string &end_token) {
+    std::string line;
+    while (true) {
+        if (!getline(is, line))
+            return false;
+        if (line == start_token)
+            break;
+    }
+    basis.clear();
+    Atom a;
+    while (a.read(is, end_token))
+        basis.emplace_back(a);
+
+    return true;
+}
+int Basis::functions_number_crt() const {
+}
+
+int Basis::functions_number_sph() const {
+}
+
+Shell Basis::get_max_shell() const {
+}
+
+void Basis::truncate_at(const Shell &shl) {
+}
+
+std::ostream &operator<<(std::ostream &os, const Basis &rhs) {
+}
+
+/////////////////////////////////////////////////////////// old code
 std::ostream &operator<<(std::ostream &os, const GTOPW &rhs) {
     os << shell2char(rhs.shl);
     os.width(3);
@@ -104,74 +173,8 @@ std::ostream &operator<<(std::ostream &os, const GTOPW &rhs) {
     return os;
 }
 
-bool GTOPW::read(std::istream &is) {
-    std::string line;
-    if (!getline(is, line))
-        return false;
-    if (line.empty())
-        return false;
-
-    std::istringstream ss(line);
-    char moment = ss.get();
-    shl         = char2shell(moment);
-    ss >> size;
-    exps.clear();
-    coefs.clear();
-    exps.reserve(size);
-    coefs.reserve(size);
-
-    for (int i = 0; i < size; ++i) {
-        if (!getline(is, line))
-            throw std::runtime_error("Invalind gtopw contraction read - check file.");
-        std::istringstream ssl(line);
-        double ex, re, im;
-        int gnum;
-        ssl >> gnum;
-        if (gnum != i + 1)
-            throw std::runtime_error("Invalind gtopw contraction read.");
-
-        ssl >> ex >> re >> im;
-        exps.push_back(ex);
-        coefs.push_back(cdouble(re, im));
-
-        double k0, k1, k2;
-        ssl >> k0 >> k1 >> k2;
-        if (i == 0)
-            k = {k0, k1, k2};
-        else if (k0 != k[0] || k1 != k[1] || k2 != k[2])
-            throw std::runtime_error("Invalind gtopw contraction read - check k.");
-    }
-
-    return true;
-}
-
 int GTOPW::functions_number() const {
     return Shell::crt_siz.at(shell2int(shl));
-}
-
-bool Basis::read(std::istream &is) {
-    Basis();
-
-    std::string line;
-    if (!getline(is, line))
-        return false;
-    if (line.empty())
-        return false;
-
-    std::istringstream ss(line);
-    std::string token;
-    ss >> token;
-    if (token == "$END")
-        return false;
-
-    label = token;
-    ss >> charge;
-    ss >> position[0] >> position[1] >> position[2];
-    GTOPW g;
-    while (g.read(is))
-        gtopws.push_back(g);
-
-    return true;
 }
 
 std::ostream &operator<<(std::ostream &os, const Basis &rhs) {
@@ -223,11 +226,6 @@ void Basis::truncate_at(const Shell &shl) {
         else
             it++;
     }
-}
-
-void Basis::set_kvec(const Vec3d &kvec) {
-    for (auto &x : gtopws)
-        x.set_kvec(kvec);
 }
 
 void punch_xgtopw_header(std::ofstream &ofs) {

@@ -51,12 +51,14 @@ struct Atom {
     double charge;
     Vec3d position;
     std::vector<GTOPW_contraction> contractions;
+
+    bool read(std::istream &is, const std::string& end_token = "$END");
 };
 
 struct Basis {
     std::vector<Atom> basis{};
 
-    bool read(std::istream &is);
+    bool read(std::istream &is, const std::string& start_token = "$BASIS", const std::string& end_token = "$END");
     int functions_number_sph() const;
     int functions_number_crt() const;
     Shell get_max_shell() const;
