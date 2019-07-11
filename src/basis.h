@@ -1,0 +1,71 @@
+#pragma once
+
+#include <array>
+#include <complex>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
+using Vec3d   = std::array<double, 3>;
+using cdouble = std::complex<double>;
+
+enum class Shell { S = 0,
+                   P = 1,
+                   D = 2,
+                   F = 3,
+                   G = 4,
+                   H = 5,
+                   I = 6,
+                   K = 7,
+                   L = 8
+};
+
+Shell char_to_shell(const char &c);
+char shell_to_char(const Shell &shell);
+int shell_to_int(const Shell &shell);
+
+struct GTOPW_primitive {
+    double exp{0};
+    cdouble coef{0};
+    Vec3d k{0, 0, 0};
+
+    bool read(std::istream &is);
+};
+
+std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs);
+
+struct GTOPW_contraction {
+    Shell shl{Shell::S};
+    std::vector<GTOPW_primitive> gtopws{};
+
+    bool read(std::istream &is);
+    int functions_number_sph() const;
+    int functions_number_crt() const;
+};
+
+std::ostream &operator<<(std::ostream &os, const GTOPW_primitive &rhs);
+
+struct Atom {
+    std::string label;
+    double charge;
+    Vec3d position;
+    std::vector<GTOPW_contraction> contractions;
+};
+
+struct Basis {
+    std::vector<Atom> basis{};
+
+    bool read(std::istream &is);
+    int functions_number_sph() const;
+    int functions_number_crt() const;
+    Shell get_max_shell() const;
+    void truncate_at(const Shell &shl);
+};
+
+std::ostream &operator<<(std::ostream &os, const Basis &rhs);
+
+void punch_xgtopw_header(std::ofstream &ofs);
+void punch_gms_ion_header(std::ofstream &ofs);
+void punch_gms_neutral_header(std::ofstream &ofs, const int &active_orbs_ci);
+void punch_gms_neutral_header_one_electron(std::ofstream &ofs);
