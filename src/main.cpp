@@ -14,11 +14,13 @@ int main() {
     b.read(file);
     file.close();
 
-    ofstream file_w("test_wrt.inp");
+    b.truncate_at(Shell::F);
+    cout << b.functions_number_crt() << '\n';
+    cout << b.functions_number_sph() << '\n';
 
+    ofstream file_w("test_wrt.inp");
     file_w << "$BASIS\n";
     file_w << b;
     file_w << "$END\n";
-
     file_w.close();
 }
