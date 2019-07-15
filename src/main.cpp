@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cmath>
+#include <complex>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -6,22 +8,22 @@
 #include <eigen3/Eigen/Dense>
 
 #include "basis.h"
+#include "constants.h"
 #include "control_data.h"
 #include "disk_reader.h"
-#include "constants.h"
 
 using namespace std;
 using namespace Eigen;
 
-int main(int argc, char *argv[]) {
-    if (!(argc == 3 || argc == 2)) {
-        cout << " Proper usage: ./photo <input name> <settings>\n";
-        return EXIT_SUCCESS;
-    }
+int main(int argc, char* argv[]) {
+//    if (!(argc == 3 || argc == 2)) {
+//        cout << " Proper usage: ./photo <input name> <settings>\n";
+//        return EXIT_SUCCESS;
+//    }
 
     const auto start = chrono::system_clock::now();
 
-    const string input = argv[1];
+    const string input =  "test.inp";// argv[1];
     string setting     = "n";
     if (argc == 3)
         setting = argv[2];
@@ -62,26 +64,108 @@ int main(int argc, char *argv[]) {
 
     Disk_reader reader(basis_length, control.resources_path + "/" + control.file1E);
 
-    const double opt_energy = control.opt_omega_eV / au_to_ev;
-    MatrixXcd Dx, Dy, Dz;  // gauge integrals
+    const auto S  = reader.load_S();
+    const auto H  = reader.load_H();
+    const auto Dx = reader.load_Dipx();
+    const auto Dy = reader.load_Dipy();
+    const auto Dz = reader.load_Dipz();
+
+    cout << H << "\n\n";
+
+    MatrixXcd Gx, Gy, Gz;  // gauge integrals
+    std::function<Vector3cd(const double&)> compute_filed;
 
     switch (control.gauge) {
         case Gauge::length:
-            Dx = reader.load_Dipx();
-            Dy = reader.load_Dipy();
-            Dz = reader.load_Dipz();
+            Gx            = reader.load_Dipx();
+            Gy            = reader.load_Dipy();
+            Gz            = reader.load_Dipz();
+            compute_filed = [&](const double& time) {
+                Vector3cd E0 = control.opt_fielddir;
+                E0 /= E0.norm();
+                E0 *= sqrt(control.opt_intensity / 351.0e14);  //TO DO what is this number ?
+                const double omega = control.opt_omega_eV / au_to_ev;
+                const auto& cycles = control.opt_cycles;
+                const auto& pcep   = control.opt_carrier_envelope;
 
+                if (time >= cycles * 2 * M_PI / omega)
+                    return Vector3cd{0, 0, 0};
+
+                E0 *= sin(omega * time / (2 * cycles)) * sin(omega * time / (2 * cycles)) * sin(omega * time + pcep);
+                return E0;
+            };
             break;
         case Gauge::velocity:
-            Dx = reader.load_Gradx() / opt_energy;
-            Dy = reader.load_Grady() / opt_energy;
-            Dz = reader.load_Gradz() / opt_energy;
+            Gx            = reader.load_Gradx();
+            Gy            = reader.load_Grady();
+            Gz            = reader.load_Gradz();
+            compute_filed = [&](const double& time) {
+                Vector3cd E0 = control.opt_fielddir;
+                E0 /= E0.norm();
+                E0 *= sqrt(control.opt_intensity / 351.0e14);  //TO DO what is this number ?
+                const double omega = control.opt_omega_eV / au_to_ev;
+                const auto& cycles = control.opt_cycles;
+                const auto& pcep   = control.opt_carrier_envelope;
+
+                if (time >= cycles * 2 * M_PI / omega)
+                    return Vector3cd{0, 0, 0};
+
+                E0 *= 1i / (omega * (2.0 - 2.0 / (cycles * cycles))) *
+                      (-cos(pcep) / (cycles * cycles) + (-1.0 + 1.0 / (cycles * cycles) + cos(omega * time / cycles)) * cos(omega * time + pcep) + (1.0 / cycles) * sin(omega * time / cycles) * sin(omega * time + pcep));
+                return E0;
+            };
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
 
-    const auto S = reader.load_S();
-    const auto H = reader.load_H();
+    GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
+    MatrixXcd LCAO = es.eigenvectors();
+    cout << " Egenvalues of H matrix:\n"
+         << es.eigenvalues() << "\n\n";
+
+    auto compute_dipole_moment = [&]() {
+        Vector3d dip;
+        dip(0) = LCAO.col(0).adjoint().dot(Dx * LCAO.col(0)).real();
+        dip(1) = LCAO.col(0).adjoint().dot(Dy * LCAO.col(0)).real();
+        dip(2) = LCAO.col(0).adjoint().dot(Dz * LCAO.col(0)).real();
+        return dip;
+    };
+
+    cout << "================= TIME PROPAGATION =================\n";
+    const int steps     = std::round(control.max_t / control.dt);
+    double current_time = 0.0;
+
+    vector<pair<double, Vector3d>> res;
+    res.reserve(steps);
+    res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+
+    for (int i = 1; i < steps; ++i) {
+        current_time += control.dt;
+        cout << " Iteration: " << i << " , time: " << current_time << '\n';
+        const VectorXcd field = compute_filed(current_time);
+        const MatrixXcd H_t   = H + field(0) * Gx + field(1) * Gy + field(2) * Gz;
+        const MatrixXcd A     = MatrixXcd::Identity(H_t.rows(), H_t.cols()) + 1i * control.dt / 2.0 * H_t;
+        const MatrixXcd B     = (MatrixXcd::Identity(H_t.rows(), H_t.cols()) - 1i * control.dt / 2.0 * H_t) * LCAO;
+
+        LCAO           = A.householderQr().solve(B);
+        const auto dip = compute_dipole_moment();
+        cout << " dipole moment: " << dip.transpose() << '\n';
+        res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+    }
+
+    if (control.write) {
+        const string res_path = control.out_path + "/" + control.out_file;
+
+        std::ofstream outfile(res_path, std::ios_base::app);
+        outfile << std::fixed;
+        outfile << "****** " << control.job_name << " ******\n";
+        cout << " time          dipx          dipy          dipz\n";
+        for (const auto& x : res) {
+            cout << setprecision(5) << x.first << "      " << x.second.transpose() << '\n';
+        }
+
+        outfile.close();
+    }
 
     const auto end                                 = chrono::system_clock::now();
     const chrono::duration<double> elapsed_seconds = end - start;
