@@ -6,10 +6,11 @@
 #include <stdexcept>
 #include <vector>
 
-Disk_reader::Disk_reader(const int &basis_length) : _basis_l(basis_length) {}
+Disk_reader::Disk_reader(const int &basis_length, const std::string &path)
+    : _basis_l(basis_length), _path(path) {}
 
-Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const std::string &path, const int &position) const {
-    std::ifstream file1E(path, std::ios::in | std::ios::binary | std::ios::ate);
+Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const int &position) const {
+    std::ifstream file1E(_path, std::ios::in | std::ios::binary | std::ios::ate);
     if (!file1E.is_open())
         throw std::runtime_error("Unable to open 1E file.");
 
@@ -40,53 +41,34 @@ Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const std::string &path, const i
     return ints.transpose();
 }
 
-Eigen::MatrixXcd Disk_reader::load_S(const std::string &path) const {
-    return load_matrix1E_bin(path, 0);
+Eigen::MatrixXcd Disk_reader::load_S() const {
+    return load_matrix1E_bin(0);
 }
 
-Eigen::MatrixXcd Disk_reader::load_H(const std::string &path) const {
-    return load_matrix1E_bin(path, 3);
+Eigen::MatrixXcd Disk_reader::load_H() const {
+    return load_matrix1E_bin(3);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Dipx(const std::string &path) const {
-    return load_matrix1E_bin(path, 4);
+Eigen::MatrixXcd Disk_reader::load_Dipx() const {
+    return load_matrix1E_bin(4);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Dipy(const std::string &path) const {
-    return load_matrix1E_bin(path, 5);
+Eigen::MatrixXcd Disk_reader::load_Dipy() const {
+    return load_matrix1E_bin(5);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Dipz(const std::string &path) const {
-    return load_matrix1E_bin(path, 6);
+Eigen::MatrixXcd Disk_reader::load_Dipz() const {
+    return load_matrix1E_bin(6);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Gradx(const std::string &path) const {
-    return load_matrix1E_bin(path, 13);
+Eigen::MatrixXcd Disk_reader::load_Gradx() const {
+    return load_matrix1E_bin(13);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Grady(const std::string &path) const {
-    return load_matrix1E_bin(path, 14);
+Eigen::MatrixXcd Disk_reader::load_Grady() const {
+    return load_matrix1E_bin(14);
 }
 
-Eigen::MatrixXcd Disk_reader::load_Gradz(const std::string &path) const {
-    return load_matrix1E_bin(path, 15);
-}
-
-Eigen::VectorXd Disk_reader::load_norms(const std::string &path) const {
-    Eigen::VectorXd vec(_basis_l);
-
-    std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
-    if (!file.is_open())
-        throw std::runtime_error("Cannot open the norms file.");
-
-    const std::streampos size = file.tellg();
-    const int double_size     = size * sizeof(char) / sizeof(double);
-    if (double_size != _basis_l)
-        throw std::runtime_error("Size of the norms file is not consistent with basis. Have you used the correct norms file?");
-
-    file.seekg(0, std::ios::beg);
-    file.read(reinterpret_cast<char *>(vec.data()), size);
-    file.close();
-
-    return vec;
+Eigen::MatrixXcd Disk_reader::load_Gradz() const {
+    return load_matrix1E_bin(15);
 }

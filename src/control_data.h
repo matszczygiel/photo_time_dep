@@ -13,6 +13,11 @@ enum class Gauge {
     acceleration
 };
 
+enum class Representation {
+    cartesian,
+    spherical
+};
+
 class Control_data {
    public:
     std::string job_name{"job"};
@@ -23,6 +28,7 @@ class Control_data {
     std::string out_file{"res.out"};
 
     Gauge gauge{Gauge::length};
+    Representation representation{Representation::cartesian};
 
     double opt_intensity{1.0e14};  //W/cm^2
     Eigen::Vector3d opt_fielddir{0.0, 0.0, 1.0};
@@ -34,12 +40,11 @@ class Control_data {
     double max_t{1000};
 
     static Control_data parse_input_file(std::ifstream &input_file,
-                                         const std::string &start_token = "$CONTROL", 
-                                         const std::string &end_token = "$END");
+                                         const std::string &start_token = "$CONTROL",
+                                         const std::string &end_token   = "$END");
 
    private:
     static std::map<std::string, std::vector<std::string>> read_keys(std::ifstream &input_file,
-                                                                     const std::string &start_token, 
+                                                                     const std::string &start_token,
                                                                      const std::string &end_token);
-
 };

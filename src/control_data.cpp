@@ -12,7 +12,7 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
     Control_data cd;
 
     auto set_unique_string = [&](const std::string &key, std::string &val) {
-        auto search = keys.find(key);
+        const auto search = keys.find(key);
         if (search != keys.end())
             val = search->second.at(0);
     };
@@ -24,7 +24,7 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
     set_unique_string("OUT_PATH", cd.out_path);
 
     {
-        auto search = keys.find("GAUGE");
+        const auto search = keys.find("GAUGE");
         if (search != keys.end()) {
             std::string gauge = search->second.at(0);
             std::transform(gauge.begin(), gauge.end(), gauge.begin(), ::tolower);
@@ -38,7 +38,19 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
         }
     }
     {
-        auto search = keys.find("WRITE");
+        const auto search = keys.find("REPRESENTATION");
+        if (search != keys.end()) {
+            std::string gauge = search->second.at(0);
+            std::transform(gauge.begin(), gauge.end(), gauge.begin(), ::tolower);
+
+            if (gauge == "cartesian")
+                cd.representation = Representation::cartesian;
+            else if (gauge == "spherical")
+                cd.representation = Representation::spherical;
+        }
+    }
+    {
+        const auto search = keys.find("WRITE");
         if (search != keys.end()) {
             std::string gauge = search->second.at(0);
             std::transform(gauge.begin(), gauge.end(), gauge.begin(), ::tolower);
@@ -51,7 +63,7 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
     }
 
     auto set_unique_double = [&](const std::string &key, double &val) {
-        auto search = keys.find(key);
+        const auto search = keys.find(key);
         if (search != keys.end())
             val = std::stod(search->second.at(0));
     };
@@ -65,7 +77,7 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
     set_unique_double("MAX_T", cd.max_t);
 
     {
-        auto search = keys.find("OPT_FIELD_DIRECTION");
+        const auto search = keys.find("OPT_FIELD_DIRECTION");
         if (search != keys.end()) {
             cd.opt_fielddir(0) = std::stod(search->second.at(0));
             cd.opt_fielddir(1) = std::stod(search->second.at(1));
@@ -79,7 +91,7 @@ std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifs
                                                                         const std::string &start_token,
                                                                         const std::string &end_token) {
     input_file.seekg(0, std::ios::beg);
-    
+
     std::string line;
     std::map<std::string, std::vector<std::string>> keys;
 

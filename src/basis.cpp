@@ -251,89 +251,9 @@ void punch_xgtopw_header(std::ofstream &ofs) {
         throw std::runtime_error("GTOPW input file is not open.");
 
     ofs << "$INTS\n";
-    //    ofs << "4\nSTVH\nDIPOLE\nVELOCITY\nERI\n";
     ofs << "3\nSTVH\nDIPOLE\nVELOCITY\n";
     ofs << "$END\n";
     ofs << "$POINTS\n";
     ofs << "1\n0.000 0.000 0.000\n";
     ofs << "$END\n";
-    ofs << "$BASIS\n";
-}
-
-void punch_gms_ion_header(std::ofstream &ofs) {
-    if (!ofs.is_open())
-        throw std::runtime_error("Gamess input file is not open.");
-
-    ofs << " $CONTRL";
-    ofs << " SCFTYP=UHF RUNTYP=ENERGY ICHARG=1 MAXIT=200 MULT=2\n  COORD=UNIQUE EXETYP=RUN ICUT=12 ISPHER=-1 QMTTOL=1e-8\n  UNITS=BOHR NPRINT=0";
-    ofs << " $END\n";
-    ofs << " $SCF";
-    ofs << " FDIFF=.F. CONV=1.0D-8 NPUNCH=0 DIIS=.T.\n  SOSCF=.F. DIRSCF=.F. DAMP=.F. NOCONV=.F. EXTRAP=.F.";
-    ofs << " $END\n";
-    ofs << " $SYSTEM";
-    ofs << " MWORDS=200 KDIAG=0";
-    ofs << " $END\n";
-    ofs << " $TRANS";
-    ofs << " CUTTRF=1.0D-14";
-    ofs << " $END\n";
-    ofs << " $GUESS";
-    ofs << " GUESS=HCORE";
-    ofs << " $END\n";
-    ofs << " $DATA\n";
-    ofs << " Title\n";
-    ofs << " C1\n";
-}
-
-void punch_gms_neutral_header_one_electron(std::ofstream &ofs) {
-    if (!ofs.is_open())
-        throw std::runtime_error("Gamess input file is not open.");
-
-    ofs << " $CONTRL";
-    ofs << " SCFTYP=UHF RUNTYP=ENERGY ICHARG=0 MAXIT=200 MULT=2\n  COORD=UNIQUE EXETYP=RUN ICUT=12 ISPHER=-1 QMTTOL=1e-8\n  UNITS=BOHR NPRINT=0";
-    ofs << " $END\n";
-    ofs << " $SCF";
-    ofs << " FDIFF=.F. CONV=1.0D-8 NPUNCH=0 DIIS=.T.\n  SOSCF=.F. DIRSCF=.F. DAMP=.F. NOCONV=.F. EXTRAP=.F.";
-    ofs << " $END\n";
-    ofs << " $SYSTEM";
-    ofs << " MWORDS=200 KDIAG=0";
-    ofs << " $END\n";
-    ofs << " $TRANS";
-    ofs << " CUTTRF=1.0D-14";
-    ofs << " $END\n";
-    ofs << " $GUESS";
-    ofs << " GUESS=HCORE";
-    ofs << " $END\n";
-    ofs << " $DATA\n";
-    ofs << " Title\n";
-    ofs << " C1\n";
-}
-
-void punch_gms_neutral_header(std::ofstream &ofs, const int &active_orbs_ci) {
-    if (!ofs.is_open())
-        throw std::runtime_error("Gamess input file is not open.");
-
-    ofs << " $CONTRL";
-    ofs << " SCFTYP=RHF RUNTYP=ENERGY ICHARG=0 MAXIT=200 MULT=1\n  COORD=UNIQUE EXETYP=RUN ICUT=12 ISPHER=-1 QMTTOL=1e-8\n  UNITS=BOHR NPRINT=0 CITYP=ALDET";
-    ofs << " $END\n";
-    ofs << " $SCF";
-    ofs << " FDIFF=.F. CONV=1.0D-8 NPUNCH=0 DIIS=.T.\n  SOSCF=.F. DIRSCF=.F. DAMP=.F. NOCONV=.F. EXTRAP=.F.";
-    ofs << " $END\n";
-    ofs << " $SYSTEM";
-    ofs << " MWORDS=200 KDIAG=0";
-    ofs << " $END\n";
-    ofs << " $TRANS";
-    ofs << " CUTTRF=1.0D-14";
-    ofs << " $END\n";
-    ofs << " $GUESS";
-    ofs << " GUESS=HCORE";
-    ofs << " $END\n";
-    ofs << " $CIDET";
-    ofs << " NCORE=0 NACT=" << active_orbs_ci << " NELS=2 SZ=0 NSTATE=1 PRTTOL=0.000000000001";
-    ofs << " $END\n";
-    ofs << " $CIDRT";
-    ofs << " NFZC=0 NDOC=1 NVAL=25 IEXCIT=2";
-    ofs << " $END\n";
-    ofs << " $DATA\n";
-    ofs << " Title\n";
-    ofs << " C1\n";
 }

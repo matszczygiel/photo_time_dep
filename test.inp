@@ -9,6 +9,7 @@ OUT_PATH                        /home/mateusz/Documents/photo/tests/
 OUT_FILE                        res.out
 
 GAUGE                           length
+REPRESENTATION                  cartesian
 
 OPT_INTENSITY                   1.0e14
 OPT_FIELD_DIRECTION             0.0 0.0 1.0
