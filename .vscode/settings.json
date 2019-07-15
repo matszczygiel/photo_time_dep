@@ -33,6 +33,15 @@
         "utility": "cpp",
         "complex": "cpp",
         "new": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "chrono": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "deque": "cpp",
+        "functional": "cpp",
+        "iomanip": "cpp",
+        "ratio": "cpp",
+        "bitset": "cpp",
+        "memory": "cpp"
     }
 }

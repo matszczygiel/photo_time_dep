@@ -1,16 +1,29 @@
-$INTS
-4
-STVH
-DIPOLE
-VELOCITY
-ERI
+$CONTROL
+
+JOB_NAME                        test
+
+RESOURCES_PATH                  /home/mateusz/Documents/photo/tests/
+FILE_1E                         file1E.F
+WRITE                           true
+OUT_PATH                        /home/mateusz/Documents/photo/tests/
+OUT_FILE                        res.out
+
+GAUGE                           length
+
+OPT_INTENSITY                   1.0e14
+OPT_FIELD_DIRECTION             0.0 0.0 1.0
+OPT_OMEGA_EV                    1.55
+OPT_CARRIER_ENVELOPE            0.0
+OPT_CYCLES                      4.0
+
+DT                              0.01
+MAX_T                           1000
+
 $END
-$POINTS
-1
-0.000 0.000 0.000
-$END
+
+
 $BASIS
-He 2.0   0.000000 0.000000 0.000000
+H 1.0   0.000000 0.000000 0.000000
 S   1
   1   4785.0000000              1.0000000  0.0000000             0.000000 0.000000 0.000000
 S   1       

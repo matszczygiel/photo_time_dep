@@ -182,6 +182,8 @@ std::ostream &operator<<(std::ostream &os, const Atom &rhs) {
 }
 
 bool Basis::read(std::istream &is, const std::string &start_token, const std::string &end_token) {
+    is.seekg(0, std::ios::beg);
+
     std::string line;
     while (true) {
         if (!getline(is, line))
