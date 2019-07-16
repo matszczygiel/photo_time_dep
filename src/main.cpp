@@ -123,9 +123,9 @@ int main(int argc, char* argv[]) {
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
-        dip(0) = LCAO.col(0).adjoint().dot(Dx * LCAO.col(0)).real();
-        dip(1) = LCAO.col(0).adjoint().dot(Dy * LCAO.col(0)).real();
-        dip(2) = LCAO.col(0).adjoint().dot(Dz * LCAO.col(0)).real();
+        dip(0) = LCAO.col(0).dot(Dx * LCAO.col(0)).real();
+        dip(1) = LCAO.col(0).dot(Dy * LCAO.col(0)).real();
+        dip(2) = LCAO.col(0).dot(Dz * LCAO.col(0)).real();
         return dip;
     };
 
