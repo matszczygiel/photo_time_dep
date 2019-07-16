@@ -42,6 +42,11 @@
         "iomanip": "cpp",
         "ratio": "cpp",
         "bitset": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "atomic": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "numeric": "cpp",
+        "thread": "cpp"
     }
 }

@@ -55,9 +55,9 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
             std::string gauge = search->second.at(0);
             std::transform(gauge.begin(), gauge.end(), gauge.begin(), ::tolower);
 
-            if (gauge == "true")
+            if (gauge == "y")
                 cd.write = true;
-            else if (gauge == "false")
+            else if (gauge == "n")
                 cd.write = false;
         }
     }
@@ -75,6 +75,7 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
 
     set_unique_double("DT", cd.dt);
     set_unique_double("MAX_T", cd.max_t);
+    set_unique_double("REGISTER_DIPOLE_DT", cd.register_dip);
 
     {
         const auto search = keys.find("OPT_FIELD_DIRECTION");
@@ -117,4 +118,56 @@ std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifs
     }
 
     return keys;
+}
+
+std::ostream &operator<<(std::ostream &os, const Control_data &rhs) {
+    os << "============================================================================\n";
+    os << "JOB_NAME                        " << rhs.job_name << '\n';
+    os << "RESOURCES_PATH                  " << rhs.resources_path << '\n';
+    os << "============================================================================\n";
+    os << "GAUGE                           " << rhs.gauge << '\n';
+    os << "REPRESENTATION                  " << rhs.representation << '\n';
+    os << "============================================================================\n";
+    os << "OPT_INTENSITY                   " << rhs.opt_intensity << '\n';
+    os << "OPT_FIELD_DIRECTION             " << rhs.opt_fielddir.transpose() << '\n';
+    os << "OPT_OMEGA_EV                    " << rhs.opt_omega_eV << '\n';
+    os << "OPT_CARRIER_ENVELOPE            " << rhs.opt_carrier_envelope << '\n';
+    os << "OPT_CYCLES                      " << rhs.opt_cycles << '\n';
+    os << "============================================================================\n";
+    os << "DT                              " << rhs.dt << '\n';
+    os << "MAX_T                           " << rhs.max_t << '\n';
+    os << "REGISTER_DIPOLE_DT              " << rhs.register_dip << '\n';
+    os << "============================================================================\n";
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const Gauge &rhs) {
+    switch (rhs) {
+        case Gauge::length:
+            os << "length";
+            return os;
+        case Gauge::velocity:
+            os << "velocity";
+            return os;
+        case Gauge::acceleration:
+            os << "acceleration";
+            return os;
+        default:
+            assert(true);
+    }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const Representation &rhs) {
+    switch (rhs) {
+        case Representation::cartesian:
+            os << "cartesian";
+            return os;
+        case Representation::spherical:
+            os << "spherical";
+            return os;
+        default:
+            assert(true);
+    }
+    return os;
 }

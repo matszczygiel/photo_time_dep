@@ -4,7 +4,7 @@ JOB_NAME                        test
 
 RESOURCES_PATH                  /home/mateusz/Documents/photo/tests/
 FILE_1E                         file1E_test.F
-WRITE                           true
+WRITE                           Y
 OUT_PATH                        /home/mateusz/Documents/photo/tests/
 OUT_FILE                        res.out
 
@@ -19,6 +19,7 @@ OPT_CYCLES                      4.0
 
 DT                              0.01
 MAX_T                           1000
+REGISTER_DIPOLE_DT              1.0
 
 $END
 

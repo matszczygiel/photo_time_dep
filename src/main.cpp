@@ -16,14 +16,14 @@ using namespace std;
 using namespace Eigen;
 
 int main(int argc, char* argv[]) {
-//    if (!(argc == 3 || argc == 2)) {
-//        cout << " Proper usage: ./photo <input name> <settings>\n";
-//        return EXIT_SUCCESS;
-//    }
+    if (!(argc == 3 || argc == 2)) {
+        cout << " Proper usage: ./photo <input name> <settings>\n";
+        return EXIT_SUCCESS;
+    }
 
     const auto start = chrono::system_clock::now();
 
-    const string input =  "test.inp";// argv[1];
+    const string input = argv[1];
     string setting     = "n";
     if (argc == 3)
         setting = argv[2];
@@ -69,8 +69,6 @@ int main(int argc, char* argv[]) {
     const auto Dx = reader.load_Dipx();
     const auto Dy = reader.load_Dipy();
     const auto Dz = reader.load_Dipz();
-
-    cout << H << "\n\n";
 
     MatrixXcd Gx, Gy, Gz;  // gauge integrals
     std::function<Vector3cd(const double&)> compute_filed;
@@ -132,16 +130,16 @@ int main(int argc, char* argv[]) {
     };
 
     cout << "================= TIME PROPAGATION =================\n";
-    const int steps     = std::round(control.max_t / control.dt);
-    double current_time = 0.0;
+    const int steps             = std::round(control.max_t / control.dt);
+    const int register_interval = std::round(control.register_dip / control.dt);
+    double current_time         = 0.0;
 
     vector<pair<double, Vector3d>> res;
-    res.reserve(steps);
+    res.reserve(steps / register_interval + 1);
     res.emplace_back(make_pair(current_time, compute_dipole_moment()));
 
     for (int i = 1; i < steps; ++i) {
         current_time += control.dt;
-        cout << " Iteration: " << i << " , time: " << current_time << '\n';
         const VectorXcd field = compute_filed(current_time);
         const MatrixXcd H_t   = H + field(0) * Gx + field(1) * Gy + field(2) * Gz;
         const MatrixXcd A     = MatrixXcd::Identity(H_t.rows(), H_t.cols()) + 1i * control.dt / 2.0 * H_t;
@@ -149,19 +147,25 @@ int main(int argc, char* argv[]) {
 
         LCAO           = A.householderQr().solve(B);
         const auto dip = compute_dipole_moment();
-        cout << " dipole moment: " << dip.transpose() << '\n';
-        res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+        if (i % register_interval == 0) {
+            res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+            cout << " Iteration: " << i << " , time: " << current_time << '\n'
+                 << " dipole moment: " << dip.transpose() << "\n\n";
+        }
     }
+
+    cout << "============= END OF TIME PROPAGATION ==============\n";
 
     if (control.write) {
         const string res_path = control.out_path + "/" + control.out_file;
 
-        std::ofstream outfile(res_path, std::ios_base::app);
-        outfile << std::fixed;
-        outfile << "****** " << control.job_name << " ******\n";
-        cout << " time          dipx          dipy          dipz\n";
+        ofstream outfile(res_path);
+        outfile << scientific;
+        outfile << control;
+        outfile << "           time                 dipx           dipy           dipz\n";
         for (const auto& x : res) {
-            cout << setprecision(5) << x.first << "      " << x.second.transpose() << '\n';
+            outfile << setprecision(5) << setw(15) << x.first << "      ";
+            outfile << setw(15) << x.second(0) << setw(15) << x.second(1) << setw(15) << x.second(2) << '\n';
         }
 
         outfile.close();
@@ -169,9 +173,6 @@ int main(int argc, char* argv[]) {
 
     const auto end                                 = chrono::system_clock::now();
     const chrono::duration<double> elapsed_seconds = end - start;
-    cout << " Wall time: " << setprecision(5) << fixed << elapsed_seconds.count() << " s\n";
-    cout << "=========================================================================="
-         << "\n"
-         << "\n";
+    cout << " Wall time: " << setprecision(5) << fixed << elapsed_seconds.count() << " s\n\n";
     return EXIT_SUCCESS;
 }

@@ -15,9 +15,9 @@ Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const int &position) const {
         throw std::runtime_error("Unable to open 1E file.");
 
     const auto bl_sqrt = _basis_l * _basis_l;
-
+ 
     const auto size1E      = file1E.tellg();
-    const int complex_size = size1E * sizeof(char) / sizeof(double) / 2.0;
+    const int complex_size = size1E * sizeof(char) / sizeof(double) / 2;
 
     if (complex_size != bl_sqrt * _matrices1E_number)
         throw std::runtime_error("The size of 1E file does not match the basis. Have you used the correct 1E file?");
@@ -25,15 +25,16 @@ Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const int &position) const {
     std::vector<double> real(bl_sqrt);
     std::vector<double> imag(bl_sqrt);
 
-    const int chunk_size = size1E / _matrices1E_number / 2.0;
+    const int chunk_size = size1E / _matrices1E_number / 2;
 
-    file1E.seekg(position * chunk_size, std::ios::beg);
+    file1E.seekg(2 * position * chunk_size, std::ios::beg);
     file1E.read(reinterpret_cast<char *>(real.data()), chunk_size);
     file1E.read(reinterpret_cast<char *>(imag.data()), chunk_size);
     file1E.close();
 
     Eigen::MatrixXcd ints(_basis_l, _basis_l);
 
+    assert(real.size() == imag.size());
     std::transform(real.begin(), real.end(), imag.begin(), ints.data(),
                    [](double &dr, double &di) {
                        return std::complex<double>(dr, di);

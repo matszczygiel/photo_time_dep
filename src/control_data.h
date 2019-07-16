@@ -13,10 +13,14 @@ enum class Gauge {
     acceleration
 };
 
+std::ostream &operator<<(std::ostream &os, const Gauge &rhs);
+
 enum class Representation {
     cartesian,
     spherical
 };
+
+std::ostream &operator<<(std::ostream &os, const Representation &rhs);
 
 class Control_data {
    public:
@@ -38,6 +42,7 @@ class Control_data {
 
     double dt{0.01};
     double max_t{1000};
+    double register_dip{1.0};
 
     static Control_data parse_input_file(std::ifstream &input_file,
                                          const std::string &start_token = "$CONTROL",
@@ -48,3 +53,5 @@ class Control_data {
                                                                      const std::string &start_token,
                                                                      const std::string &end_token);
 };
+
+std::ostream &operator<<(std::ostream &os, const Control_data &rhs);
