@@ -2,6 +2,11 @@
 
 #!/bin/bash
 
+if [ "$#" -ne 1 ]; then
+    echo "Illegal number of parameters, usage: ./run.sh <job name>"
+    exit 1
+fi
+
 XGTOPW_PATH="/home/mateusz/workspace/gtopw/build/Release/"
 PHOTO_TD_PATH="/home/mateusz/workspace/photo_time_dep/build/Release/"
 
@@ -26,5 +31,8 @@ sed -i "6 a \$PATH\n$INTS/\n\$END" $JOB_NAME.inp
 $XGTOPW_PATH./xgtopw $JOB_NAME.inp >$LOGS/log_xgtopw.out
 
 $PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_photo_td.out
+
+cd $INTS
+rm *.F
 
 cd $HERE
