@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     file.close();
 
     if (setting == "-prep") {
-        const string xgtopw_input_path = control.out_path + "/" + control.job_name + ".inp";
+        const string xgtopw_input_path = control.job_name + ".inp";
         std::ofstream outfile(xgtopw_input_path);
         if (!outfile.is_open())
             throw runtime_error("Cannot open out file!");
