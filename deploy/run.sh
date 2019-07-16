@@ -36,3 +36,4 @@ cd $INTS
 rm *.F
 
 cd $HERE
+./plot.py res.out
