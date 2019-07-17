@@ -116,6 +116,8 @@ int main(int argc, char* argv[]) {
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
 
+    cout << " Number of threads being used: " << Eigen::nbThreads( ) << '\n';
+
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
     MatrixXcd LCAO = es.eigenvectors();
     cout << " Egenvalues of H matrix:\n"
@@ -130,7 +132,7 @@ int main(int argc, char* argv[]) {
         return dip;
     };
 
-    cout << "================= TIME PROPAGATION =================\n";
+    cout << " ================= TIME PROPAGATION =================\n";
     const int steps             = std::round(control.max_t / control.dt);
     const int register_interval = std::round(control.register_dip / control.dt);
     double current_time         = 0.0;
@@ -146,7 +148,7 @@ int main(int argc, char* argv[]) {
         const MatrixXcd A     = S + 1i * control.dt / 2.0 * H_t;
         const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;
 
-        LCAO           = A.householderQr().solve(B);
+        LCAO           = A.partialPivLu().solve(B);
         const auto dip = compute_dipole_moment();
         if (i % register_interval == 0) {
             res.emplace_back(make_pair(current_time, compute_dipole_moment()));
@@ -155,7 +157,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    cout << "============= END OF TIME PROPAGATION ==============\n";
+    cout << " ============= END OF TIME PROPAGATION ==============\n";
 
     if (control.write) {
         const string res_path = control.out_path + "/" + control.out_file;

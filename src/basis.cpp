@@ -109,7 +109,7 @@ std::ostream &operator<<(std::ostream &os, const GTOPW_contraction &rhs) {
     os << "\n";
     std::string spaces = "          ";
 
-    for (int i = 0; i < rhs.gtopws.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(rhs.gtopws.size()); ++i) {
         os.width(3);
         os << i + 1;
         os << rhs.gtopws[i];

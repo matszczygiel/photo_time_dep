@@ -22,5 +22,7 @@ target_compile_options(main PRIVATE -Wall )
 
 target_include_directories(main PUBLIC src)
 
+find_package(OpenMP REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-target_link_libraries (main Eigen3::Eigen)
+
+target_link_libraries (main PRIVATE OpenMP::OpenMP_CXX Eigen3::Eigen)
