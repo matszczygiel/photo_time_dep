@@ -32,8 +32,7 @@ $XGTOPW_PATH./xgtopw $JOB_NAME.inp >$LOGS/log_xgtopw.out
 
 $PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_photo_td.out
 
-cd $INTS
-rm *.F
-
 cd $HERE
+rm -r $INTS
+
 ./plot.py res.out

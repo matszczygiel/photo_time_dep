@@ -123,9 +123,10 @@ int main(int argc, char* argv[]) {
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
-        dip(0) = LCAO.col(0).dot(Dx * LCAO.col(0)).real();
-        dip(1) = LCAO.col(0).dot(Dy * LCAO.col(0)).real();
-        dip(2) = LCAO.col(0).dot(Dz * LCAO.col(0)).real();
+        const VectorXcd state = LCAO.col(0);
+        dip(0)                = (state.dot(Dx * state)).real();
+        dip(1)                = (state.dot(Dy * state)).real();
+        dip(2)                = (state.dot(Dz * state)).real();
         return dip;
     };
 
@@ -142,8 +143,8 @@ int main(int argc, char* argv[]) {
         current_time += control.dt;
         const VectorXcd field = compute_filed(current_time);
         const MatrixXcd H_t   = H + field(0) * Gx + field(1) * Gy + field(2) * Gz;
-        const MatrixXcd A     = MatrixXcd::Identity(H_t.rows(), H_t.cols()) + 1i * control.dt / 2.0 * H_t;
-        const MatrixXcd B     = (MatrixXcd::Identity(H_t.rows(), H_t.cols()) - 1i * control.dt / 2.0 * H_t) * LCAO;
+        const MatrixXcd A     = S + 1i * control.dt / 2.0 * H_t;
+        const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;
 
         LCAO           = A.householderQr().solve(B);
         const auto dip = compute_dipole_moment();
