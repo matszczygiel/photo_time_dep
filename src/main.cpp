@@ -116,19 +116,20 @@ int main(int argc, char* argv[]) {
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
 
-    cout << " Number of threads being used: " << Eigen::nbThreads( ) << '\n';
+    cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
 
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
-    MatrixXcd LCAO = es.eigenvectors();
+    //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
+    VectorXcd state = es.eigenvectors().col(0);  //only the ground state
     cout << " Egenvalues of H matrix:\n"
          << es.eigenvalues() << "\n\n";
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
-        const VectorXcd state = LCAO.col(0);
-        dip(0)                = (state.dot(Dx * state)).real();
-        dip(1)                = (state.dot(Dy * state)).real();
-        dip(2)                = (state.dot(Dz * state)).real();
+        //        const VectorXcd state = LCAO.col(0); //use for full computations
+        dip(0) = (state.dot(Dx * state)).real();
+        dip(1) = (state.dot(Dy * state)).real();
+        dip(2) = (state.dot(Dz * state)).real();
         return dip;
     };
 
@@ -146,9 +147,13 @@ int main(int argc, char* argv[]) {
         const VectorXcd field = compute_filed(current_time);
         const MatrixXcd H_t   = H + field(0) * Gx + field(1) * Gy + field(2) * Gz;
         const MatrixXcd A     = S + 1i * control.dt / 2.0 * H_t;
-        const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;
 
-        LCAO           = A.partialPivLu().solve(B);
+        //const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full computations
+        const VectorXcd B = (S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
+
+        // LCAO           = A.partialPivLu().solve(B);//use for full computations
+        state = A.partialPivLu().solve(B);  //only the ground state
+
         const auto dip = compute_dipole_moment();
         if (i % register_interval == 0) {
             res.emplace_back(make_pair(current_time, compute_dipole_moment()));
