@@ -30,9 +30,23 @@ $PHOTO_TD_PATH./main $SETTINGS_FILE -prep >$LOGS/log_prep.out
 sed -i "6 a \$PATH\n$INTS/\n\$END" $JOB_NAME.inp
 $XGTOPW_PATH./xgtopw $JOB_NAME.inp >$LOGS/log_xgtopw.out
 
-$PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_photo_td.out
+
+
+#length gauge
+sed -i -e "s|^GAUGE .*|GAUGE                        length|g" $SETTINGS_FILE
+sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_len.out|g" $SETTINGS_FILE
+
+$PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_len.out
+
+
+#velocity gauge
+sed -i -e "s|^GAUGE .*|GAUGE                        velocity|g" $SETTINGS_FILE
+sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_vel.out|g" $SETTINGS_FILE
+
+$PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_vel.out
+
 
 cd $HERE
 rm -r $INTS
 
-./plot.py res.out
+./plot.py $JOB_NAME

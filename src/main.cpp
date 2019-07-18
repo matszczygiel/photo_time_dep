@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
                       (-cos(pcep) / (cycles * cycles) + (-1.0 + 1.0 / (cycles * cycles) + cos(omega * time / cycles)) * cos(omega * time + pcep) + (1.0 / cycles) * sin(omega * time / cycles) * sin(omega * time + pcep));
                 return E0;
             };
+            break;
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }

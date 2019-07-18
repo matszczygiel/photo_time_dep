@@ -123,7 +123,6 @@ std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifs
 std::ostream &operator<<(std::ostream &os, const Control_data &rhs) {
     os << "============================================================================\n";
     os << "JOB_NAME                        " << rhs.job_name << '\n';
-//  os << "RESOURCES_PATH                  " << rhs.resources_path << '\n';
     os << "============================================================================\n";
     os << "GAUGE                           " << rhs.gauge << '\n';
     os << "REPRESENTATION                  " << rhs.representation << '\n';
