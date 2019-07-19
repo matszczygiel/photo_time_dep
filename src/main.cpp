@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
-                E0 *= sqrt(control.opt_intensity / 351.0e14);  //TO DO what is this number ?
+                E0 *= sqrt(control.opt_intensity / intensity_to_au);
                 const double omega = control.opt_omega_eV / au_to_ev;
                 const auto& cycles = control.opt_cycles;
                 const auto& pcep   = control.opt_carrier_envelope;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
-                E0 *= sqrt(control.opt_intensity / 351.0e14);  //TO DO what is this number ?
+                E0 *= sqrt(control.opt_intensity / intensity_to_au);  
                 const double omega = control.opt_omega_eV / au_to_ev;
                 const auto& cycles = control.opt_cycles;
                 const auto& pcep   = control.opt_carrier_envelope;

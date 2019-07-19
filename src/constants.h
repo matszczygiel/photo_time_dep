@@ -9,3 +9,6 @@ constexpr double au_to_barns = au_to_meters * au_to_meters / barn_to_sqrmeters;
 
 constexpr double au_to_ev = 27.211385;
 
+//conversion from 1 W/m^2 to the unit of E^2 in atomic units; I = eps_0 c E^2 /2 
+constexpr double intensity_to_au = 3.50944758e16;
+
