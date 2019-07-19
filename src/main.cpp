@@ -70,6 +70,12 @@ int main(int argc, char* argv[]) {
     const auto Dy = reader.load_Dipy();
     const auto Dz = reader.load_Dipz();
 
+//    cout << "S  \n" <<  S  <<"\n\n";
+//    cout << "H  \n" <<  H  <<"\n\n";
+//    cout << "Dx \n" <<  Dx <<"\n\n";
+//    cout << "Dy \n" <<  Dy <<"\n\n";
+//    cout << "Dz \n" <<  Dz <<"\n\n";
+
     MatrixXcd Gx, Gy, Gz;  // gauge integrals
     std::function<Vector3cd(const double&)> compute_filed;
 
@@ -100,7 +106,7 @@ int main(int argc, char* argv[]) {
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
-                E0 *= sqrt(control.opt_intensity / intensity_to_au);  
+                E0 *= sqrt(control.opt_intensity / intensity_to_au);
                 const double omega = control.opt_omega_eV / au_to_ev;
                 const auto& cycles = control.opt_cycles;
                 const auto& pcep   = control.opt_carrier_envelope;
@@ -116,6 +122,10 @@ int main(int argc, char* argv[]) {
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
+
+//    cout << "Gx \n" <<  Gx <<"\n\n";
+//    cout << "Gy \n" <<  Gy <<"\n\n";
+//    cout << "Gz \n" <<  Gz <<"\n\n";
 
     cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
 
@@ -153,7 +163,7 @@ int main(int argc, char* argv[]) {
         const VectorXcd B = (S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
 
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
-        state = A.partialPivLu().solve(B);  //only the ground state
+        state = A.householderQr().solve(B);  //only the ground state
 
         const auto dip = compute_dipole_moment();
         if (i % register_interval == 0) {
