@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         const VectorXcd B = (S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
 
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
-        state = A.householderQr().solve(B);  //only the ground state
+        state = A.partialPivLu().solve(B);  //only the ground state
 
         const auto dip = compute_dipole_moment();
         if (i % register_interval == 0) {

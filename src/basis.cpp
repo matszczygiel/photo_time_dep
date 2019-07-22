@@ -250,10 +250,14 @@ void punch_xgtopw_header(std::ofstream &ofs) {
     if (!ofs.is_open())
         throw std::runtime_error("GTOPW input file is not open.");
 
-    ofs << "$INTS\n";
-    ofs << "3\nSTVH\nDIPOLE\nVELOCITY\n";
-    ofs << "$END\n";
-    ofs << "$POINTS\n";
-    ofs << "1\n0.000 0.000 0.000\n";
-    ofs << "$END\n";
+    ofs << "$INTS\n"
+        << "3\nSTVH\nDIPOLE\nVELOCITY\n"
+        << "$END\n";
+    ofs << "$REPRESENTATION\n"
+        << "cartesian\n"
+        << "spherical\n"
+        << "$END\n";
+    ofs << "$POINTS\n"
+        << "1\n0.000 0.000 0.000\n"
+        << "$END\n";
 }

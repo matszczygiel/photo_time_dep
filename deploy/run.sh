@@ -20,7 +20,7 @@ JOB_NAME=$1
 
 sed -i -e "s/^JOB_NAME .*/JOB_NAME                        ${JOB_NAME}/g" $SETTINGS_FILE
 sed -i -e "s|^RESOURCES_PATH .*|RESOURCES_PATH                        ${INTS}|g" $SETTINGS_FILE
-sed -i -e "s|^FILE_1E .*|FILE_1E                        file1E_${JOB_NAME}.F|g" $SETTINGS_FILE
+sed -i -e "s|^FILE_1E .*|FILE_1E                        file1E_${JOB_NAME}_sph.F|g" $SETTINGS_FILE
 sed -i -e "s|^OUT_PATH .*|OUT_PATH                        ${HERE}|g" $SETTINGS_FILE
 mv $SETTINGS_FILE $INPS
 
