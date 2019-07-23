@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "control_data.h"
 #include "disk_reader.h"
+#include "utils.h"
 
 using namespace std;
 using namespace Eigen;
@@ -51,16 +52,7 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    int basis_length = 0;
-    switch (control.representation) {
-        case Representation::cartesian:
-            basis_length = b.functions_number_crt();
-            break;
-
-        case Representation::spherical:
-            basis_length = b.functions_number_sph();
-            break;
-    }
+    const int basis_length = get_basis_functions_count(b, control.representation);
 
     Disk_reader reader(basis_length, control.resources_path + "/" + control.file1E);
 
@@ -70,11 +62,18 @@ int main(int argc, char* argv[]) {
     const auto Dy = reader.load_Dipy();
     const auto Dz = reader.load_Dipz();
 
-//    cout << "S  \n" <<  S  <<"\n\n";
-//    cout << "H  \n" <<  H  <<"\n\n";
-//    cout << "Dx \n" <<  Dx <<"\n\n";
-//    cout << "Dy \n" <<  Dy <<"\n\n";
-//    cout << "Dz \n" <<  Dz <<"\n\n";
+#ifdef PHOTO_DEBUG
+    cout << "S  \n"
+         << S << "\n\n";
+    cout << "H  \n"
+         << H << "\n\n";
+    cout << "Dx \n"
+         << Dx << "\n\n";
+    cout << "Dy \n"
+         << Dy << "\n\n";
+    cout << "Dz \n"
+         << Dz << "\n\n";
+#endif
 
     MatrixXcd Gx, Gy, Gz;  // gauge integrals
     std::function<Vector3cd(const double&)> compute_filed;
@@ -123,13 +122,32 @@ int main(int argc, char* argv[]) {
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
 
-//    cout << "Gx \n" <<  Gx <<"\n\n";
-//    cout << "Gy \n" <<  Gy <<"\n\n";
-//    cout << "Gz \n" <<  Gz <<"\n\n";
+#ifdef PHOTO_DEBUG
+    cout << "Gx \n"
+         << Gx << "\n\n";
+    cout << "Gy \n"
+         << Gy << "\n\n";
+    cout << "Gz \n"
+         << Gz << "\n\n";
+#endif
 
     cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
 
+#ifdef PHOTO_DEBUG
+        SelfAdjointEigenSolver<MatrixXcd> es2;
+        es2.compute(S, EigenvaluesOnly);
+        cout << " EigenSolver info: ";
+        check_and_report_eigen_info(cout, es2.info());
+        cout << " Egenvalues of S matrix:\n"
+             << es2.eigenvalues() << '\n'
+             << endl;
+#endif
+
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
+    cout << " EigenSolver info: ";
+    if (check_and_report_eigen_info(cout, es.info()))
+        return EXIT_FAILURE;
+
     //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
     VectorXcd state = es.eigenvectors().col(0);  //only the ground state
     cout << " Egenvalues of H matrix:\n"
