@@ -16,16 +16,19 @@
 using namespace std;
 using namespace Eigen;
 
+#define PHOTO_DEBUG
+
 int main(int argc, char* argv[]) {
+    const auto start = chrono::system_clock::now();
+
     if (!(argc == 3 || argc == 2)) {
         cout << " Proper usage: ./photo <input name> <settings>\n";
         return EXIT_SUCCESS;
     }
 
-    const auto start = chrono::system_clock::now();
-
     const string input = argv[1];
-    string setting     = "n";
+
+    string setting = "n";
     if (argc == 3)
         setting = argv[2];
 
@@ -56,11 +59,11 @@ int main(int argc, char* argv[]) {
 
     Disk_reader reader(basis_length, control.resources_path + "/" + control.file1E);
 
-    const auto S  = reader.load_S();
-    const auto H  = reader.load_H();
-    const auto Dx = reader.load_Dipx();
-    const auto Dy = reader.load_Dipy();
-    const auto Dz = reader.load_Dipz();
+    auto S  = reader.load_S();
+    auto H  = reader.load_H();
+    auto Dx = reader.load_Dipx();
+    auto Dy = reader.load_Dipy();
+    auto Dz = reader.load_Dipz();
 
 #ifdef PHOTO_DEBUG
     cout << "S  \n"
@@ -133,20 +136,62 @@ int main(int argc, char* argv[]) {
 
     cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
 
+    cout << " Computing S matrix eigenvalues.\n";
+    SelfAdjointEigenSolver<MatrixXcd> es2;
+    es2.compute(S);
+    cout << " EigenSolver info: ";
+    check_and_report_eigen_info(cout, es2.info());
+    cout << " Egenvalues of S matrix:\n"
+         << es2.eigenvalues() << "\n\n";
+
+    int vecs_to_cut = 0;
+    while (es2.eigenvalues()(vecs_to_cut) < Control_data::s_eigenval_threshold) {
+        ++vecs_to_cut;
+    }
+
+    cout << " Cutting " + to_string(vecs_to_cut) + " linear dependent vectors.\n";
+    MatrixXcd U = es2.eigenvectors().rightCols(basis_length - vecs_to_cut);
+
 #ifdef PHOTO_DEBUG
-        SelfAdjointEigenSolver<MatrixXcd> es2;
-        es2.compute(S, EigenvaluesOnly);
-        cout << " EigenSolver info: ";
-        check_and_report_eigen_info(cout, es2.info());
-        cout << " Egenvalues of S matrix:\n"
-             << es2.eigenvalues() << '\n'
-             << endl;
+    cout << " Transformation matrix:\n"
+         << U << "\n\n";
+#endif
+
+    H  = (U.adjoint() * H * U).eval();
+    S  = es2.eigenvalues().tail(basis_length - vecs_to_cut).asDiagonal();
+    Dx = (U.adjoint() * Dx * U).eval();
+    Dy = (U.adjoint() * Dy * U).eval();
+    Dz = (U.adjoint() * Dz * U).eval();
+    Gx = (U.adjoint() * Gx * U).eval();
+    Gy = (U.adjoint() * Gy * U).eval();
+    Gz = (U.adjoint() * Gz * U).eval();
+
+#ifdef PHOTO_DEBUG
+    cout << " Matrices after transformation\n";
+    cout << "S  \n"
+         << S << "\n\n";
+    cout << "H  \n"
+         << H << "\n\n";
+    cout << "Dx \n"
+         << Dx << "\n\n";
+    cout << "Dy \n"
+         << Dy << "\n\n";
+    cout << "Dz \n"
+         << Dz << "\n\n";
+    cout << "Gx \n"
+         << Gx << "\n\n";
+    cout << "Gy \n"
+         << Gy << "\n\n";
+    cout << "Gz \n"
+         << Gz << "\n\n";
 #endif
 
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
     cout << " EigenSolver info: ";
-    if (check_and_report_eigen_info(cout, es.info()))
+    if (check_and_report_eigen_info(cout, es.info())) {
+        cout << "exiting...\n";
         return EXIT_FAILURE;
+    }
 
     //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
     VectorXcd state = es.eigenvectors().col(0);  //only the ground state

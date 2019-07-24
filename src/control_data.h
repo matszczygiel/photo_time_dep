@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <limits>
 
 #include <eigen3/Eigen/Dense>
 
@@ -43,6 +44,8 @@ class Control_data {
     double dt{0.01};
     double max_t{1000};
     double register_dip{1.0};
+
+    constexpr static double s_eigenval_threshold  = std::numeric_limits<double>::epsilon();
 
     static Control_data parse_input_file(std::ifstream &input_file,
                                          const std::string &start_token = "$CONTROL",
