@@ -16,8 +16,6 @@
 using namespace std;
 using namespace Eigen;
 
-#define PHOTO_DEBUG
-
 int main(int argc, char* argv[]) {
     const auto start = chrono::system_clock::now();
 
