@@ -142,8 +142,10 @@ int main(int argc, char* argv[]) {
     cout << " Egenvalues of S matrix:\n"
          << es2.eigenvalues() << "\n\n";
 
+    const double threshold = Control_data::s_eigenval_threshold * es2.eigenvalues()(es2.eigenvalues().size()-1);
+
     int vecs_to_cut = 0;
-    while (es2.eigenvalues()(vecs_to_cut) < Control_data::s_eigenval_threshold) {
+    while (es2.eigenvalues()(vecs_to_cut) < threshold) {
         ++vecs_to_cut;
     }
 
