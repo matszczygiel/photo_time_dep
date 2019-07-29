@@ -1,12 +1,14 @@
 #pragma once
 
 #include <fstream>
+#include <limits>
 #include <map>
 #include <string>
 #include <vector>
-#include <limits>
 
 #include <eigen3/Eigen/Dense>
+
+#include "basis.h"
 
 enum class Gauge {
     velocity,
@@ -45,9 +47,11 @@ class Control_data {
     double max_t{1000};
     double register_dip{1.0};
 
-    constexpr static double s_eigenval_threshold  = std::numeric_limits<double>::epsilon();
+    Basis basis{};
 
-    static Control_data parse_input_file(std::ifstream &input_file,
+    constexpr static double s_eigenval_threshold = std::numeric_limits<double>::epsilon();
+
+    static Control_data parse_input_file(const std::string &input_file,
                                          const std::string &start_token = "$CONTROL",
                                          const std::string &end_token   = "$END");
 

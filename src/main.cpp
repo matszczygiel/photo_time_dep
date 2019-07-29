@@ -30,14 +30,7 @@ int main(int argc, char* argv[]) {
     if (argc == 3)
         setting = argv[2];
 
-    ifstream file(input);
-    if (!file.is_open())
-        throw runtime_error("Invalid input basis file.");
-
-    const auto control = Control_data::parse_input_file(file);
-    Basis b;
-    b.read(file);
-    file.close();
+    const auto control = Control_data::parse_input_file(input);
 
     if (setting == "-prep") {
         const string xgtopw_input_path = control.job_name + ".inp";
@@ -47,13 +40,13 @@ int main(int argc, char* argv[]) {
 
         punch_xgtopw_header(outfile);
         outfile << "$BASIS\n"
-                << b << "$END\n";
+                << control.basis << "$END\n";
         outfile.close();
 
         return EXIT_SUCCESS;
     }
 
-    const int basis_length = get_basis_functions_count(b, control.representation);
+    const int basis_length = get_basis_functions_count(control);
 
     Disk_reader reader(basis_length, control.resources_path + "/" + control.file1E);
 
@@ -142,7 +135,7 @@ int main(int argc, char* argv[]) {
     cout << " Egenvalues of S matrix:\n"
          << es2.eigenvalues() << "\n\n";
 
-    const double threshold = Control_data::s_eigenval_threshold * es2.eigenvalues()(es2.eigenvalues().size()-1);
+    const double threshold = Control_data::s_eigenval_threshold * es2.eigenvalues()(es2.eigenvalues().size() - 1);
 
     int vecs_to_cut = 0;
     while (es2.eigenvalues()(vecs_to_cut) < threshold) {
@@ -157,14 +150,14 @@ int main(int argc, char* argv[]) {
          << U << "\n\n";
 #endif
 
-    H  = (U.adjoint() * H * U).eval();
+    H  = U.adjoint() * H * U;
     S  = es2.eigenvalues().tail(basis_length - vecs_to_cut).asDiagonal();
-    Dx = (U.adjoint() * Dx * U).eval();
-    Dy = (U.adjoint() * Dy * U).eval();
-    Dz = (U.adjoint() * Dz * U).eval();
-    Gx = (U.adjoint() * Gx * U).eval();
-    Gy = (U.adjoint() * Gy * U).eval();
-    Gz = (U.adjoint() * Gz * U).eval();
+    Dx = U.adjoint() * Dx * U;
+    Dy = U.adjoint() * Dy * U;
+    Dz = U.adjoint() * Dz * U;
+    Gx = U.adjoint() * Gx * U;
+    Gy = U.adjoint() * Gy * U;
+    Gz = U.adjoint() * Gz * U;
 
 #ifdef PHOTO_DEBUG
     cout << " Matrices after transformation\n";
@@ -230,7 +223,7 @@ int main(int argc, char* argv[]) {
 
         const auto dip = compute_dipole_moment();
         if (i % register_interval == 0) {
-            res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+            res.emplace_back(make_pair(current_time, dip));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
                  << " dipole moment: " << dip.transpose() << "\n\n";
         }
@@ -238,20 +231,7 @@ int main(int argc, char* argv[]) {
 
     cout << " ============= END OF TIME PROPAGATION ==============\n";
 
-    if (control.write) {
-        const string res_path = control.out_path + "/" + control.out_file;
-
-        ofstream outfile(res_path);
-        outfile << scientific;
-        outfile << control;
-        outfile << "           time                 dipx           dipy           dipz\n";
-        for (const auto& x : res) {
-            outfile << setprecision(5) << setw(15) << x.first << "      ";
-            outfile << setw(15) << x.second(0) << setw(15) << x.second(1) << setw(15) << x.second(2) << '\n';
-        }
-
-        outfile.close();
-    }
+    write_result(control, res);
 
     const auto end                                 = chrono::system_clock::now();
     const chrono::duration<double> elapsed_seconds = end - start;

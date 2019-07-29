@@ -2,13 +2,15 @@
 
 #include <regex>
 
-Control_data Control_data::parse_input_file(std::ifstream &input_file,
+Control_data Control_data::parse_input_file(const std::string &input_file,
                                             const std::string &start_token,
                                             const std::string &end_token) {
-    if (!input_file.is_open())
+    
+    std::ifstream file(input_file);
+    if (!file.is_open())
         throw std::runtime_error("Input file is not open!");
 
-    const auto keys = read_keys(input_file, start_token, end_token);
+    const auto keys = read_keys(file, start_token, end_token);
     Control_data cd;
 
     auto set_unique_string = [&](const std::string &key, std::string &val) {
@@ -85,23 +87,27 @@ Control_data Control_data::parse_input_file(std::ifstream &input_file,
             cd.opt_fielddir(2) = std::stod(search->second.at(2));
         }
     }
+
+    cd.basis.read(file);
+
+    file.close();
     return cd;
 }
 
-std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifstream &input_file,
+std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifstream &file,
                                                                         const std::string &start_token,
                                                                         const std::string &end_token) {
-    input_file.seekg(0, std::ios::beg);
+    file.seekg(0, std::ios::beg);
 
     std::string line;
     std::map<std::string, std::vector<std::string>> keys;
 
-    while (std::getline(input_file, line)) {
+    while (std::getline(file, line)) {
         if (line == start_token)
             break;
     }
 
-    while (std::getline(input_file, line)) {
+    while (std::getline(file, line)) {
         if (line.empty())
             continue;
         if (line == end_token)
