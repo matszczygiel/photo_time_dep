@@ -34,10 +34,34 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+    cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
+
     Integrals ints;
     ints.read_from_disk(control);
 
 #ifdef PHOTO_DEBUG
+    cout << "S  \n"
+         << ints.S << "\n\n";
+    cout << "H  \n"
+         << ints.H << "\n\n";
+    cout << "Dx \n"
+         << ints.Dx << "\n\n";
+    cout << "Dy \n"
+         << ints.Dy << "\n\n";
+    cout << "Dz \n"
+         << ints.Dz << "\n\n";
+    cout << "Gx \n"
+         << ints.Gx << "\n\n";
+    cout << "Gy \n"
+         << ints.Gy << "\n\n";
+    cout << "Gz \n"
+         << ints.Gz << "\n\n";
+#endif
+
+    ints.cut_linear_dependencies();
+
+#ifdef PHOTO_DEBUG
+    cout << " Matrices after transformation\n";
     cout << "S  \n"
          << ints.S << "\n\n";
     cout << "H  \n"
@@ -95,29 +119,6 @@ int main(int argc, char* argv[]) {
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
-    cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
-
-    ints.cut_linear_dependencies();
-
-#ifdef PHOTO_DEBUG
-    cout << " Matrices after transformation\n";
-    cout << "S  \n"
-         << ints.S << "\n\n";
-    cout << "H  \n"
-         << ints.H << "\n\n";
-    cout << "Dx \n"
-         << ints.Dx << "\n\n";
-    cout << "Dy \n"
-         << ints.Dy << "\n\n";
-    cout << "Dz \n"
-         << ints.Dz << "\n\n";
-    cout << "Gx \n"
-         << ints.Gx << "\n\n";
-    cout << "Gy \n"
-         << ints.Gy << "\n\n";
-    cout << "Gz \n"
-         << ints.Gz << "\n\n";
-#endif
 
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(ints.H, ints.S);
     cout << " EigenSolver info: ";
