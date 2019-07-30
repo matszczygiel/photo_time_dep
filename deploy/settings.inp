@@ -18,7 +18,7 @@ OPT_CARRIER_ENVELOPE            0.0
 OPT_CYCLES                      4.0
 
 DT                              0.01
-MAX_T                           600
+MAX_T                           800
 REGISTER_DIPOLE_DT              1.0
 
 $END

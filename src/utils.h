@@ -1,11 +1,9 @@
 #pragma once
 
+#include <chrono>
 #include <iostream>
 
 #include <eigen3/Eigen/Core>
-
-#include "basis.h"
-#include "control_data.h"
 
 inline bool check_and_report_eigen_info(std::ostream& os, const Eigen::ComputationInfo& info) {
     switch (info) {
@@ -26,32 +24,15 @@ inline bool check_and_report_eigen_info(std::ostream& os, const Eigen::Computati
     return false;
 }
 
-inline int get_basis_functions_count(const Control_data& data) {
-    switch (data.representation) {
-        case Representation::cartesian:
-            return data.basis.functions_number_crt();
+class Clock {
+   public:
+    Clock() = default;
+    std::chrono::duration<double> restart();
+    std::chrono::duration<double> duration() const;
 
-        case Representation::spherical:
-            return data.basis.functions_number_sph();
-        default:
-            throw std::runtime_error("Unknown representation.");
-            return 0;
-    }
-}
+   private:
+    std::chrono::time_point<std::chrono::system_clock> _start{std::chrono::system_clock::now()};
+};
 
-inline void write_result(const Control_data& control, const std::vector<std::pair<double, Eigen::Vector3d>>& res) {
-    if (control.write) {
-        const std::string res_path = control.out_path + "/" + control.out_file;
+std::ostream& operator<<(std::ostream& os, const Clock& rhs);
 
-        std::ofstream outfile(res_path);
-        outfile << std::scientific;
-        outfile << control;
-        outfile << "           time                 dipx           dipy           dipz\n";
-        for (const auto& x : res) {
-            outfile << std::setprecision(5) << std::setw(15) << x.first << "      ";
-            outfile << std::setw(15) << x.second(0) << std::setw(15) << x.second(1) << std::setw(15) << x.second(2) << '\n';
-        }
-
-        outfile.close();
-    }
-}

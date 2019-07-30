@@ -18,7 +18,11 @@ add_executable (main
                 src/disk_reader.h
                 src/control_data.h
                 src/main.cpp
-                src/utils.h)
+                src/utils.cpp
+                src/utils.h
+                src/procedures.cpp
+                src/procedures.h
+                )
 
 target_compile_features(main PUBLIC
                         cxx_std_11)

@@ -11,72 +11,55 @@
 #include "constants.h"
 #include "control_data.h"
 #include "disk_reader.h"
+#include "procedures.h"
 #include "utils.h"
 
 using namespace std;
 using namespace Eigen;
 
 int main(int argc, char* argv[]) {
-    const auto start = chrono::system_clock::now();
+    const Clock clk;
 
     if (!(argc == 3 || argc == 2)) {
-        cout << " Proper usage: ./photo <input name> <settings>\n";
+        cerr << " Proper usage: ./photo <input name> <settings>\n";
         return EXIT_SUCCESS;
     }
 
-    const string input = argv[1];
+    const auto control = Control_data::parse_input_file(argv[1]);
 
-    string setting = "n";
-    if (argc == 3)
-        setting = argv[2];
+    if (argc == 3 && string(argv[2]) == "-prep") {
+        run_preparation(control);
 
-    const auto control = Control_data::parse_input_file(input);
-
-    if (setting == "-prep") {
-        const string xgtopw_input_path = control.job_name + ".inp";
-        std::ofstream outfile(xgtopw_input_path);
-        if (!outfile.is_open())
-            throw runtime_error("Cannot open out file!");
-
-        punch_xgtopw_header(outfile);
-        outfile << "$BASIS\n"
-                << control.basis << "$END\n";
-        outfile.close();
-
+        cout << " Wall time: " << setprecision(5) << fixed << clk << "\n\n";
         return EXIT_SUCCESS;
     }
 
-    const int basis_length = get_basis_functions_count(control);
-
-    Disk_reader reader(basis_length, control.resources_path + "/" + control.file1E);
-
-    auto S  = reader.load_S();
-    auto H  = reader.load_H();
-    auto Dx = reader.load_Dipx();
-    auto Dy = reader.load_Dipy();
-    auto Dz = reader.load_Dipz();
+    Integrals ints;
+    ints.read_from_disk(control);
 
 #ifdef PHOTO_DEBUG
     cout << "S  \n"
-         << S << "\n\n";
+         << ints.S << "\n\n";
     cout << "H  \n"
-         << H << "\n\n";
+         << ints.H << "\n\n";
     cout << "Dx \n"
-         << Dx << "\n\n";
+         << ints.Dx << "\n\n";
     cout << "Dy \n"
-         << Dy << "\n\n";
+         << ints.Dy << "\n\n";
     cout << "Dz \n"
-         << Dz << "\n\n";
+         << ints.Dz << "\n\n";
+    cout << "Gx \n"
+         << ints.Gx << "\n\n";
+    cout << "Gy \n"
+         << ints.Gy << "\n\n";
+    cout << "Gz \n"
+         << ints.Gz << "\n\n";
 #endif
 
-    MatrixXcd Gx, Gy, Gz;  // gauge integrals
     std::function<Vector3cd(const double&)> compute_filed;
 
     switch (control.gauge) {
         case Gauge::length:
-            Gx            = reader.load_Dipx();
-            Gy            = reader.load_Dipy();
-            Gz            = reader.load_Dipz();
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
@@ -93,9 +76,6 @@ int main(int argc, char* argv[]) {
             };
             break;
         case Gauge::velocity:
-            Gx            = reader.load_Gradx();
-            Gy            = reader.load_Grady();
-            Gz            = reader.load_Gradz();
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
@@ -115,71 +95,31 @@ int main(int argc, char* argv[]) {
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
-
-#ifdef PHOTO_DEBUG
-    cout << "Gx \n"
-         << Gx << "\n\n";
-    cout << "Gy \n"
-         << Gy << "\n\n";
-    cout << "Gz \n"
-         << Gz << "\n\n";
-#endif
-
     cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
 
-    cout << " Computing S matrix eigenvalues.\n";
-    SelfAdjointEigenSolver<MatrixXcd> es2;
-    es2.compute(S);
-    cout << " EigenSolver info: ";
-    check_and_report_eigen_info(cout, es2.info());
-    cout << " Egenvalues of S matrix:\n"
-         << es2.eigenvalues() << "\n\n";
-
-    const double threshold = Control_data::s_eigenval_threshold * es2.eigenvalues()(es2.eigenvalues().size() - 1);
-
-    int vecs_to_cut = 0;
-    while (es2.eigenvalues()(vecs_to_cut) < threshold) {
-        ++vecs_to_cut;
-    }
-
-    cout << " Cutting " + to_string(vecs_to_cut) + " linear dependent vectors.\n";
-    MatrixXcd U = es2.eigenvectors().rightCols(basis_length - vecs_to_cut);
-
-#ifdef PHOTO_DEBUG
-    cout << " Transformation matrix:\n"
-         << U << "\n\n";
-#endif
-
-    H  = U.adjoint() * H * U;
-    S  = es2.eigenvalues().tail(basis_length - vecs_to_cut).asDiagonal();
-    Dx = U.adjoint() * Dx * U;
-    Dy = U.adjoint() * Dy * U;
-    Dz = U.adjoint() * Dz * U;
-    Gx = U.adjoint() * Gx * U;
-    Gy = U.adjoint() * Gy * U;
-    Gz = U.adjoint() * Gz * U;
+    ints.cut_linear_dependencies();
 
 #ifdef PHOTO_DEBUG
     cout << " Matrices after transformation\n";
     cout << "S  \n"
-         << S << "\n\n";
+         << ints.S << "\n\n";
     cout << "H  \n"
-         << H << "\n\n";
+         << ints.H << "\n\n";
     cout << "Dx \n"
-         << Dx << "\n\n";
+         << ints.Dx << "\n\n";
     cout << "Dy \n"
-         << Dy << "\n\n";
+         << ints.Dy << "\n\n";
     cout << "Dz \n"
-         << Dz << "\n\n";
+         << ints.Dz << "\n\n";
     cout << "Gx \n"
-         << Gx << "\n\n";
+         << ints.Gx << "\n\n";
     cout << "Gy \n"
-         << Gy << "\n\n";
+         << ints.Gy << "\n\n";
     cout << "Gz \n"
-         << Gz << "\n\n";
+         << ints.Gz << "\n\n";
 #endif
 
-    GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(H, S);
+    GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(ints.H, ints.S);
     cout << " EigenSolver info: ";
     if (check_and_report_eigen_info(cout, es.info())) {
         cout << "exiting...\n";
@@ -194,9 +134,9 @@ int main(int argc, char* argv[]) {
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
         //        const VectorXcd state = LCAO.col(0); //use for full computations
-        dip(0) = (state.dot(Dx * state)).real();
-        dip(1) = (state.dot(Dy * state)).real();
-        dip(2) = (state.dot(Dz * state)).real();
+        dip(0) = (state.dot(ints.Dx * state)).real();
+        dip(1) = (state.dot(ints.Dy * state)).real();
+        dip(2) = (state.dot(ints.Dz * state)).real();
         return dip;
     };
 
@@ -211,12 +151,12 @@ int main(int argc, char* argv[]) {
 
     for (int i = 1; i < steps; ++i) {
         current_time += control.dt;
-        const VectorXcd field = compute_filed(current_time);
-        const MatrixXcd H_t   = H + field(0) * Gx + field(1) * Gy + field(2) * Gz;
-        const MatrixXcd A     = S + 1i * control.dt / 2.0 * H_t;
+        const Vector3cd field = compute_filed(current_time);
+        const MatrixXcd H_t   = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz;
+        const MatrixXcd A     = ints.S + 1i * control.dt / 2.0 * H_t;
 
         //const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full computations
-        const VectorXcd B = (S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
+        const VectorXcd B = (ints.S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
 
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
         state = A.partialPivLu().solve(B);  //only the ground state
@@ -233,8 +173,6 @@ int main(int argc, char* argv[]) {
 
     write_result(control, res);
 
-    const auto end                                 = chrono::system_clock::now();
-    const chrono::duration<double> elapsed_seconds = end - start;
-    cout << " Wall time: " << setprecision(5) << fixed << elapsed_seconds.count() << " s\n\n";
+    cout << " Wall time: " << setprecision(5) << fixed << clk << "\n\n";
     return EXIT_SUCCESS;
 }
