@@ -16,6 +16,7 @@ class Disk_reader {
     Eigen::MatrixXcd load_Gradx() const;
     Eigen::MatrixXcd load_Grady() const;
     Eigen::MatrixXcd load_Gradz() const;
+    Eigen::MatrixXcd load_CAP() const;
 
    protected:
     Eigen::MatrixXcd load_matrix1E_bin(const int &position) const;

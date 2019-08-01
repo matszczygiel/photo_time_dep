@@ -29,6 +29,7 @@ struct Integrals {
     Eigen::MatrixXcd H{};
     Eigen::MatrixXcd Dx{}, Dy{}, Dz{};
     Eigen::MatrixXcd Gx{}, Gy{}, Gz{};
+    Eigen::MatrixXcd CAP{};
 
     void read_from_disk(const Control_data& control);
     void cut_linear_dependencies();

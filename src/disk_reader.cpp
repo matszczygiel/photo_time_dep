@@ -20,8 +20,8 @@ Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const int &position) const {
     const int complex_size = size1E * sizeof(char) / sizeof(double) / 2;
 
     if (complex_size != bl_sqrt * _matrices1E_number)
-        throw std::runtime_error("The size of 1E file does not match the basis size ( " + std::to_string(_basis_l)+ " )."+ 
-                                  "Have you used the correct 1E file? its size correspond to basis size " + std::to_string(std::sqrt(complex_size / _matrices1E_number)));
+        throw std::runtime_error("The size of 1E file does not match the basis size ( " + std::to_string(_basis_l) + " )." +
+                                 "Have you used the correct 1E file? its size correspond to basis size " + std::to_string(std::sqrt(complex_size / _matrices1E_number)));
 
     std::vector<double> real(bl_sqrt);
     std::vector<double> imag(bl_sqrt);
@@ -38,7 +38,7 @@ Eigen::MatrixXcd Disk_reader::load_matrix1E_bin(const int &position) const {
     assert(real.size() == imag.size());
     std::transform(real.begin(), real.end(), imag.begin(), ints.data(),
                    [](double &dr, double &di) {
-            return std::complex<double>(dr, di);
+                       return std::complex<double>(dr, di);
                    });
     return ints.transpose();
 }
@@ -73,4 +73,8 @@ Eigen::MatrixXcd Disk_reader::load_Grady() const {
 
 Eigen::MatrixXcd Disk_reader::load_Gradz() const {
     return load_matrix1E_bin(15);
+}
+
+Eigen::MatrixXcd Disk_reader::load_CAP() const {
+    return -1i * load_matrix1E_bin(19);
 }

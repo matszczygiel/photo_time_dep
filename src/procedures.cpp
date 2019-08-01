@@ -44,11 +44,12 @@ void Integrals::read_from_disk(const Control_data& control) {
     Disk_reader reader(get_basis_functions_count(control),
                        control.resources_path + "/" + control.file1E);
 
-    S  = reader.load_S();
-    H  = reader.load_H();
-    Dx = reader.load_Dipx();
-    Dy = reader.load_Dipy();
-    Dz = reader.load_Dipz();
+    S   = reader.load_S();
+    H   = reader.load_H();
+    Dx  = reader.load_Dipx();
+    Dy  = reader.load_Dipy();
+    Dz  = reader.load_Dipz();
+    CAP = reader.load_CAP();
 
     switch (control.gauge) {
         case Gauge::length:
@@ -91,12 +92,13 @@ void Integrals::cut_linear_dependencies() {
          << U << "\n\n";
 #endif
 
-    H  = U.adjoint() * H * U;
-    S  = es.eigenvalues().tail(es.eigenvalues().size() - vecs_to_cut).asDiagonal();
-    Dx = U.adjoint() * Dx * U;
-    Dy = U.adjoint() * Dy * U;
-    Dz = U.adjoint() * Dz * U;
-    Gx = U.adjoint() * Gx * U;
-    Gy = U.adjoint() * Gy * U;
-    Gz = U.adjoint() * Gz * U;
+    H   = U.adjoint() * H * U;
+    S   = es.eigenvalues().tail(es.eigenvalues().size() - vecs_to_cut).asDiagonal();
+    Dx  = U.adjoint() * Dx * U;
+    Dy  = U.adjoint() * Dy * U;
+    Dz  = U.adjoint() * Dz * U;
+    Gx  = U.adjoint() * Gx * U;
+    Gy  = U.adjoint() * Gy * U;
+    Gz  = U.adjoint() * Gz * U;
+    CAP = U.adjoint() * CAP * U;
 }

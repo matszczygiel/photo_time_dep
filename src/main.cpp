@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
          << ints.Gy << "\n\n";
     cout << "Gz \n"
          << ints.Gz << "\n\n";
+    cout << "CAP \n"
+         << ints.CAP << "\n\n";
 #endif
 
     ints.cut_linear_dependencies();
@@ -78,6 +80,8 @@ int main(int argc, char* argv[]) {
          << ints.Gy << "\n\n";
     cout << "Gz \n"
          << ints.Gz << "\n\n";
+    cout << "CAP \n"
+         << ints.CAP << "\n\n";
 #endif
 
     std::function<Vector3cd(const double&)> compute_filed;
@@ -153,7 +157,8 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < steps; ++i) {
         current_time += control.dt;
         const Vector3cd field = compute_filed(current_time);
-        const MatrixXcd H_t   = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz;
+        // Remove CAP if you want
+        const MatrixXcd H_t   = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz + ints.CAP;
         const MatrixXcd A     = ints.S + 1i * control.dt / 2.0 * H_t;
 
         //const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full computations

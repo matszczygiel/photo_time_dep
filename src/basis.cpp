@@ -82,7 +82,7 @@ bool GTOPW_contraction::read(std::istream &is) {
     std::istringstream ss(line);
 
     const auto shell = ss.get();
-    if(shell == ' ')
+    if (shell == ' ')
         return false;
 
     shl = char_to_shell(shell);
@@ -255,7 +255,11 @@ void punch_xgtopw_header(std::ofstream &ofs) {
         throw std::runtime_error("GTOPW input file is not open.");
 
     ofs << "$INTS\n"
-        << "3\nSTVH\nDIPOLE\nVELOCITY\n"
+        << "4\nSTVH\nDIPOLE\nVELOCITY\nCAPINTS\n"
+        << "$END\n";
+    ofs << "$CAPAR\n"
+        << "40.0\n"
+        << "5.0\n"
         << "$END\n";
     ofs << "$REPRESENTATION\n"
         << "cartesian\n"
