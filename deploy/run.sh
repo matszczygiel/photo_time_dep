@@ -49,7 +49,7 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
-sed -i "6 a \$PATH\n$INTS/\n\$END" $JOB_NAME.inp
+sed -i "7 a \$PATH\n$INTS/\n\$END" $JOB_NAME.inp
 $XGTOPW_PATH./xgtopw $JOB_NAME.inp >$LOGS/log_xgtopw.out
 
 if [ "$?" -ne 0 ]; then

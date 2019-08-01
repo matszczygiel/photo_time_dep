@@ -255,7 +255,7 @@ void punch_xgtopw_header(std::ofstream &ofs) {
         throw std::runtime_error("GTOPW input file is not open.");
 
     ofs << "$INTS\n"
-        << "4\nSTVH\nDIPOLE\nVELOCITY\nCAPINTS\n"
+        << "4\nSTVH\nDIPOLE\nVELOCITY\nCAPINT\n"
         << "$END\n";
     ofs << "$CAPAR\n"
         << "40.0\n"
