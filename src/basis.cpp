@@ -81,7 +81,11 @@ bool GTOPW_contraction::read(std::istream &is) {
 
     std::istringstream ss(line);
 
-    shl = char_to_shell(ss.get());
+    const auto shell = ss.get();
+    if(shell == ' ')
+        return false;
+
+    shl = char_to_shell(shell);
 
     int size;
     ss >> size;
