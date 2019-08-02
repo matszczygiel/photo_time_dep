@@ -34,7 +34,7 @@ void run_preparation(const Control_data& control) {
     if (!outfile.is_open())
         throw runtime_error("Cannot open out file!");
 
-    punch_xgtopw_header(outfile);
+    punch_xgtopw_header(outfile, control);
     outfile << "$BASIS\n"
             << control.basis << "$END\n";
     outfile.close();

@@ -2,8 +2,11 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 
 #include <eigen3/Eigen/Core>
+
+#include "control_data.h"
 
 inline bool check_and_report_eigen_info(std::ostream& os, const Eigen::ComputationInfo& info) {
     switch (info) {
@@ -36,3 +39,5 @@ class Clock {
 
 std::ostream& operator<<(std::ostream& os, const Clock& rhs);
 
+
+void punch_xgtopw_header(std::ofstream &ofs, const Control_data& control);

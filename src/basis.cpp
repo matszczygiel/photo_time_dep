@@ -249,23 +249,3 @@ std::ostream &operator<<(std::ostream &os, const Basis &rhs) {
     }
     return os;
 }
-
-void punch_xgtopw_header(std::ofstream &ofs) {
-    if (!ofs.is_open())
-        throw std::runtime_error("GTOPW input file is not open.");
-
-    ofs << "$INTS\n"
-        << "4\nSTVH\nDIPOLE\nVELOCITY\nCAPINT\n"
-        << "$END\n";
-    ofs << "$CAPAR\n"
-        << "40.0\n"
-        << "5.0\n"
-        << "$END\n";
-    ofs << "$REPRESENTATION\n"
-        << "cartesian\n"
-        << "spherical\n"
-        << "$END\n";
-    ofs << "$POINTS\n"
-        << "1\n0.000 0.000 0.000\n"
-        << "$END\n";
-}

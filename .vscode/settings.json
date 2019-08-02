@@ -47,6 +47,7 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "numeric": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "cfenv": "cpp"
     }
 }

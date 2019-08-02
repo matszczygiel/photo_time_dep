@@ -43,6 +43,10 @@ class Control_data {
     double opt_carrier_envelope{0.0};
     double opt_cycles{4.0};
 
+    bool use_cap{false};
+    double cap_r0{40.0};
+    double cap_amp{5.0};
+
     double dt{0.01};
     double max_t{1000};
     double register_dip{1.0};

@@ -70,5 +70,3 @@ struct Basis {
 };
 
 std::ostream &operator<<(std::ostream &os, const Basis &rhs);
-
-void punch_xgtopw_header(std::ofstream &ofs);

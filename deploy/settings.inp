@@ -11,6 +11,10 @@ OUT_FILE                        res.out
 GAUGE                           length
 REPRESENTATION                  spherical
 
+USE_CAP                         Y
+CAP_R0                          40.0
+CAP_AMPLITUDE                   5.0
+
 OPT_INTENSITY                   1.0e14
 OPT_FIELD_DIRECTION             0.0 0.0 1.0
 OPT_OMEGA_EV                    1.55

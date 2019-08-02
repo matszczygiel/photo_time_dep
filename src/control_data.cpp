@@ -5,7 +5,6 @@
 Control_data Control_data::parse_input_file(const std::string &input_file,
                                             const std::string &start_token,
                                             const std::string &end_token) {
-    
     std::ifstream file(input_file);
     if (!file.is_open())
         throw std::runtime_error("Input file is not open!");
@@ -19,11 +18,44 @@ Control_data Control_data::parse_input_file(const std::string &input_file,
             val = search->second.at(0);
     };
 
+    auto set_unique_bool = [&](const std::string &key, bool &val) {
+        const auto search = keys.find(key);
+        if (search != keys.end()) {
+            std::string token = search->second.at(0);
+            std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+            if (token == "y" || token == "yes")
+                val = true;
+            else if (token == "n" || token == "no")
+                val = false;
+        }
+    };
+
+    auto set_unique_double = [&](const std::string &key, double &val) {
+        const auto search = keys.find(key);
+        if (search != keys.end())
+            val = std::stod(search->second.at(0));
+    };
+
     set_unique_string("JOB_NAME", cd.job_name);
     set_unique_string("RESOURCES_PATH", cd.resources_path);
     set_unique_string("FILE_1E", cd.file1E);
     set_unique_string("OUT_FILE", cd.out_file);
     set_unique_string("OUT_PATH", cd.out_path);
+
+    set_unique_bool("WRITE", cd.write);
+    set_unique_bool("USE_CAP", cd.use_cap);
+
+    set_unique_double("OPT_INTENSITY", cd.opt_intensity);
+    set_unique_double("OPT_OMEGA_EV", cd.opt_omega_eV);
+    set_unique_double("OPT_CARRIER_ENVELOPE", cd.opt_carrier_envelope);
+    set_unique_double("OPT_CYCLES", cd.opt_cycles);
+
+    set_unique_double("DT", cd.dt);
+    set_unique_double("MAX_T", cd.max_t);
+    set_unique_double("REGISTER_DIPOLE_DT", cd.register_dip);
+
+    set_unique_double("CAP_R0", cd.cap_r0);
+    set_unique_double("CAP_AMPLITUDE", cd.cap_amp);
 
     {
         const auto search = keys.find("GAUGE");
@@ -51,34 +83,6 @@ Control_data Control_data::parse_input_file(const std::string &input_file,
                 cd.representation = Representation::spherical;
         }
     }
-    {
-        const auto search = keys.find("WRITE");
-        if (search != keys.end()) {
-            std::string gauge = search->second.at(0);
-            std::transform(gauge.begin(), gauge.end(), gauge.begin(), ::tolower);
-
-            if (gauge == "y")
-                cd.write = true;
-            else if (gauge == "n")
-                cd.write = false;
-        }
-    }
-
-    auto set_unique_double = [&](const std::string &key, double &val) {
-        const auto search = keys.find(key);
-        if (search != keys.end())
-            val = std::stod(search->second.at(0));
-    };
-
-    set_unique_double("OPT_INTENSITY", cd.opt_intensity);
-    set_unique_double("OPT_OMEGA_EV", cd.opt_omega_eV);
-    set_unique_double("OPT_CARRIER_ENVELOPE", cd.opt_carrier_envelope);
-    set_unique_double("OPT_CYCLES", cd.opt_cycles);
-
-    set_unique_double("DT", cd.dt);
-    set_unique_double("MAX_T", cd.max_t);
-    set_unique_double("REGISTER_DIPOLE_DT", cd.register_dip);
-
     {
         const auto search = keys.find("OPT_FIELD_DIRECTION");
         if (search != keys.end()) {
