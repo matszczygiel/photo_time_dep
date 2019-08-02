@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     res.reserve(steps / register_interval + 1);
     res.emplace_back(make_pair(current_time, compute_dipole_moment()));
 
-    for (int i = 1; i < steps; ++i) {
+    for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
         const Vector3cd field = compute_filed(current_time);
         // Remove CAP if you want
