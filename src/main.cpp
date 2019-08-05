@@ -145,21 +145,25 @@ int main(int argc, char* argv[]) {
         return dip;
     };
 
+    auto compute_norm = [&]() {
+        return state.dot(ints.S * state).real();
+    };
+
     cout << " ================= TIME PROPAGATION =================\n";
     const int steps             = std::round(control.max_t / control.dt);
     const int register_interval = std::round(control.register_dip / control.dt);
     double current_time         = 0.0;
 
-    vector<pair<double, Vector3d>> res;
+    vector<pair<double, pair<Vector3d, double>>> res;
     res.reserve(steps / register_interval + 1);
-    res.emplace_back(make_pair(current_time, compute_dipole_moment()));
+    res.emplace_back(make_pair(current_time, make_pair(compute_dipole_moment(), compute_norm())));
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
         const Vector3cd field = compute_filed(current_time);
         // Remove CAP if you want
-        const MatrixXcd H_t   = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz + ints.CAP;
-        const MatrixXcd A     = ints.S + 1i * control.dt / 2.0 * H_t;
+        const MatrixXcd H_t = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz + ints.CAP;
+        const MatrixXcd A   = ints.S + 1i * control.dt / 2.0 * H_t;
 
         //const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full computations
         const VectorXcd B = (ints.S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
@@ -167,11 +171,13 @@ int main(int argc, char* argv[]) {
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
         state = A.partialPivLu().solve(B);  //only the ground state
 
-        const auto dip = compute_dipole_moment();
+        const auto dip  = compute_dipole_moment();
+        const auto norm = compute_norm();
         if (i % register_interval == 0) {
-            res.emplace_back(make_pair(current_time, dip));
+            res.emplace_back(make_pair(current_time, make_pair(dip, norm)));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
-                 << " dipole moment: " << dip.transpose() << "\n\n";
+                 << "   dipole moment: " << dip.transpose() << '\n'
+                 << "   norm:          " << norm << "\n\n";
         }
     }
 

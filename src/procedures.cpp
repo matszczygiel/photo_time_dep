@@ -11,17 +11,17 @@
 using namespace std;
 using namespace Eigen;
 
-void write_result(const Control_data& control, const vector<pair<double, Vector3d>>& res) {
+void write_result(const Control_data& control, const vector<pair<double, pair<Vector3d, double>>>& res) {
     if (control.write) {
         const string res_path = control.out_path + "/" + control.out_file;
 
         ofstream outfile(res_path);
         outfile << scientific;
         outfile << control;
-        outfile << "           time                 dipx           dipy           dipz\n";
+        outfile << "         time             dipx          dipy          dipz          norm\n";
         for (const auto& x : res) {
-            outfile << setprecision(5) << setw(15) << x.first << "      ";
-            outfile << setw(15) << x.second(0) << setw(15) << x.second(1) << setw(15) << x.second(2) << '\n';
+            outfile << setprecision(5) << setw(13) << x.first << "   ";
+            outfile << setw(14) << x.second.first(0) << setw(14) << x.second.first(1) << setw(14) << x.second.first(2) << setw(14) << x.second.second << '\n';
         }
 
         outfile.close();
