@@ -7,5 +7,6 @@ LOGS="$HERE/logs"
 SETTINGS_FILE="settings.inp"
 
 rm $HERE/res*
+rm $HERE/norm*
 cp $INPS/$SETTINGS_FILE $HERE
 rm -r $INPS $LOGS $INTS
