@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     cout << " Number of threads being used: " << Eigen::nbThreads() << "\n\n";
+    cout << scientific;
 
     Integrals ints;
     ints.read_from_disk(control);
@@ -124,17 +125,19 @@ int main(int argc, char* argv[]) {
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
 
+    cout << " Computing eigenstates of H.\n";
+
     GeneralizedSelfAdjointEigenSolver<MatrixXcd> es(ints.H, ints.S);
-    cout << " EigenSolver info: ";
+    cout << "   EigenSolver info: ";
     if (check_and_report_eigen_info(cout, es.info())) {
-        cout << "exiting...\n";
+        cerr << "exiting...\n";
         return EXIT_FAILURE;
     }
 
     //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
     VectorXcd state = es.eigenvectors().col(0);  //only the ground state
-    cout << " Egenvalues of H matrix:\n"
-         << es.eigenvalues() << "\n\n";
+    cout << "   Egenvalues of H matrix:\n"
+         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ","","","" )) << "\n\n";
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
@@ -183,7 +186,7 @@ int main(int argc, char* argv[]) {
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
                  << "   dipole moment: " << dip.transpose() << '\n'
                  << "   norm:          " << norm << '\n'
-                 << "   energy: " << energy << "\n\n";
+                 << "   energy:        " << energy << "\n\n";
         }
     }
 

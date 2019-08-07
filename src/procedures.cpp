@@ -72,13 +72,13 @@ void Integrals::read_from_disk(const Control_data& control) {
 
 void Integrals::cut_linear_dependencies() {
     cout << " Cutting linear dependencies: \n"
-         << " Computing S matrix eigenvalues.\n";
+         << "   Computing S matrix eigenvalues.\n";
     SelfAdjointEigenSolver<MatrixXcd> es;
     es.compute(S);
-    cout << " EigenSolver info: ";
+    cout << "   EigenSolver info: ";
     check_and_report_eigen_info(cout, es.info());
-    cout << " Egenvalues of S matrix:\n"
-         << es.eigenvalues() << "\n\n";
+    cout << "   Egenvalues of S matrix:\n"
+         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ","","","" )) << "\n\n";
 
     const double threshold = Control_data::s_eigenval_threshold * es.eigenvalues()(es.eigenvalues().size() - 1);
 
@@ -87,11 +87,11 @@ void Integrals::cut_linear_dependencies() {
         ++vecs_to_cut;
     }
 
-    cout << " Cutting " + to_string(vecs_to_cut) + " linear dependent vectors.\n\n";
+    cout << "   Cutting " + to_string(vecs_to_cut) + " linear dependent vectors.\n\n";
     MatrixXcd U = es.eigenvectors().rightCols(es.eigenvalues().size() - vecs_to_cut);
 
 #ifdef PHOTO_DEBUG
-    cout << " Transformation matrix:\n"
+    cout << "   Transformation matrix:\n"
          << U << "\n\n";
 #endif
 
