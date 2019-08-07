@@ -146,7 +146,11 @@ int main(int argc, char* argv[]) {
     };
 
     auto compute_norm = [&]() {
-        return state.dot(ints.S * state).real();
+        return sqrt(state.dot(ints.S * state).real());
+    };
+
+    auto compute_energy = [&]() {
+        return state.dot(ints.H * state).real();
     };
 
     cout << " ================= TIME PROPAGATION =================\n";
@@ -154,9 +158,9 @@ int main(int argc, char* argv[]) {
     const int register_interval = std::round(control.register_dip / control.dt);
     double current_time         = 0.0;
 
-    vector<pair<double, pair<Vector3d, double>>> res;
+    vector<tuple<double, Vector3d, double, double>> res;
     res.reserve(steps / register_interval + 1);
-    res.emplace_back(make_pair(current_time, make_pair(compute_dipole_moment(), compute_norm())));
+    res.emplace_back(make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy()));
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
@@ -171,13 +175,15 @@ int main(int argc, char* argv[]) {
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
         state = A.partialPivLu().solve(B);  //only the ground state
 
-        const auto dip  = compute_dipole_moment();
-        const auto norm = compute_norm();
+        const auto dip    = compute_dipole_moment();
+        const auto norm   = compute_norm();
+        const auto energy = compute_energy() / norm / norm;
         if (i % register_interval == 0) {
-            res.emplace_back(make_pair(current_time, make_pair(dip, norm)));
+            res.emplace_back(make_tuple(current_time, dip, norm, energy));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
                  << "   dipole moment: " << dip.transpose() << '\n'
-                 << "   norm:          " << norm << "\n\n";
+                 << "   norm:          " << norm << '\n'
+                 << "   energy: " << energy << "\n\n";
         }
     }
 
