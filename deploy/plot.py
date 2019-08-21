@@ -52,13 +52,9 @@ plt.legend()
 plt.savefig("Hint.png", dpi=resolution)
 
 
-fft_len = np.fft.rfft(data_len[:, 3]) 
-fft_vel = np.fft.rfft(data_vel[:, 3]) 
-fft_vA2 = np.fft.rfft(data_vA2[:, 3]) 
-
-fftfreq_len = np.fft.fftfreq(data_len[:, 0].size, data_len[1, 0] - data_len[0, 0])
-fftfreq_vel = np.fft.fftfreq(data_vel[:, 0].size, data_vel[1, 0] - data_vel[0, 0])
-fftfreq_vA2 = np.fft.fftfreq(data_vA2[:, 0].size, data_vA2[1, 0] - data_vA2[0, 0])
+fft_len = np.abs(np.fft.rfft(data_len[:, 3]))**2
+fft_vel = np.abs(np.fft.rfft(data_vel[:, 3]))**2
+fft_vA2 = np.abs(np.fft.rfft(data_vA2[:, 3]))**2
 
 ev_to_au = 0.03674930495
 
@@ -78,13 +74,37 @@ for item in open(file_velA, 'r').readlines():
     if "OPT_OMEGA_EV" in item:
             vA2_omega = float(item.split()[-1]) * ev_to_au
 
+fftfreq_len = np.fft.fftfreq(data_len[:, 0].size, data_len[1, 0] - data_len[0, 0])[0:fft_len.size] / len_omega
+fftfreq_vel = np.fft.fftfreq(data_vel[:, 0].size, data_vel[1, 0] - data_vel[0, 0])[0:fft_vel.size] / vel_omega
+fftfreq_vA2 = np.fft.fftfreq(data_vA2[:, 0].size, data_vA2[1, 0] - data_vA2[0, 0])[0:fft_vA2.size] / vA2_omega
+
 
 plt.clf()
 plt.yscale('log')
-plt.plot(fftfreq_len[0:fft_len.size] / len_omega, np.abs(fft_len)**2, linewidth=0.7, color='b', label="length")
-plt.plot(fftfreq_vel[0:fft_vel.size] / vel_omega, np.abs(fft_vel)**2, linewidth=0.7, color='r', label="velocity")
-plt.plot(fftfreq_vA2[0:fft_vA2.size] / vA2_omega, np.abs(fft_vA2)**2, linewidth=0.7, color='g', label="velocity_A^2")
+plt.plot(fftfreq_len, fft_len, linewidth=0.7, color='b', label="length")
+plt.plot(fftfreq_vel, fft_vel, linewidth=0.7, color='r', label="velocity")
+plt.plot(fftfreq_vA2, fft_vA2, linewidth=0.7, color='g', label="velocity_A^2")
 plt.title(name)
 plt.grid()
 plt.legend()
-plt.savefig("fft.png", dpi=resolution)
+plt.savefig("fft_d2.png", dpi=resolution)
+
+plt.clf()
+plt.yscale('log')
+plt.plot(fftfreq_len, fft_len*fftfreq_len**2, linewidth=0.7, color='b', label="length")
+plt.plot(fftfreq_vel, fft_vel*fftfreq_vel**2, linewidth=0.7, color='r', label="velocity")
+plt.plot(fftfreq_vA2, fft_vA2*fftfreq_vA2**2, linewidth=0.7, color='g', label="velocity_A^2")
+plt.title(name)
+plt.grid()
+plt.legend()
+plt.savefig("fft_w2d2.png", dpi=resolution)
+
+plt.clf()
+plt.yscale('log')
+plt.plot(fftfreq_len, fft_len*fftfreq_len**4, linewidth=0.7, color='b', label="length")
+plt.plot(fftfreq_vel, fft_vel*fftfreq_vel**4, linewidth=0.7, color='r', label="velocity")
+plt.plot(fftfreq_vA2, fft_vA2*fftfreq_vA2**4, linewidth=0.7, color='g', label="velocity_A^2")
+plt.title(name)
+plt.grid()
+plt.legend()
+plt.savefig("fft_w4d2.png", dpi=resolution)
