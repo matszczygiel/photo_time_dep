@@ -69,7 +69,7 @@ Control_data Control_data::parse_input_file(const std::string &input_file,
                 cd.gauge = Gauge::velocity;
             else if (gauge == "acceleration")
                 cd.gauge = Gauge::acceleration;
-            else if (gauge == "velocity_with_Asqrt")
+            else if (gauge == "velocity_with_asqrt")
                 cd.gauge = Gauge::velocity_with_Asqrt;
         }
     }
