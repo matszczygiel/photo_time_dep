@@ -58,6 +58,18 @@ if [ "$?" -ne 0 ]; then
 fi
 
 
+#velocityA gauge
+sed -i -e "s|^GAUGE .*|GAUGE                        velocity_with_Asqrt|g" $SETTINGS_FILE
+sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_velA.out|g" $SETTINGS_FILE
+
+$PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_velA.out
+
+if [ "$?" -ne 0 ]; then
+    echo " Velocity with A^2 gauge computation (photo_td) failed."
+    exit 1
+fi
+
+
 #length gauge
 sed -i -e "s|^GAUGE .*|GAUGE                        length|g" $SETTINGS_FILE
 sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_len.out|g" $SETTINGS_FILE

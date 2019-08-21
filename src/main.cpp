@@ -41,51 +41,34 @@ int main(int argc, char* argv[]) {
     ints.read_from_disk(control);
 
 #ifdef PHOTO_DEBUG
-    cout << "S  \n"
-         << ints.S << "\n\n";
-    cout << "H  \n"
-         << ints.H << "\n\n";
-    cout << "Dx \n"
-         << ints.Dx << "\n\n";
-    cout << "Dy \n"
-         << ints.Dy << "\n\n";
-    cout << "Dz \n"
-         << ints.Dz << "\n\n";
-    cout << "Gx \n"
-         << ints.Gx << "\n\n";
-    cout << "Gy \n"
-         << ints.Gy << "\n\n";
-    cout << "Gz \n"
-         << ints.Gz << "\n\n";
-    cout << "CAP \n"
-         << ints.CAP << "\n\n";
+    cout << "S  \n" << ints.S << "\n\n";
+    cout << "H  \n" << ints.H << "\n\n";
+    cout << "Dx \n" << ints.Dx << "\n\n";
+    cout << "Dy \n" << ints.Dy << "\n\n";
+    cout << "Dz \n" << ints.Dz << "\n\n";
+    cout << "Gx \n" << ints.Gx << "\n\n";
+    cout << "Gy \n" << ints.Gy << "\n\n";
+    cout << "Gz \n" << ints.Gz << "\n\n";
+    cout << "CAP \n" << ints.CAP << "\n\n";
 #endif
 
     ints.cut_linear_dependencies();
 
 #ifdef PHOTO_DEBUG
     cout << " Matrices after transformation\n";
-    cout << "S  \n"
-         << ints.S << "\n\n";
-    cout << "H  \n"
-         << ints.H << "\n\n";
-    cout << "Dx \n"
-         << ints.Dx << "\n\n";
-    cout << "Dy \n"
-         << ints.Dy << "\n\n";
-    cout << "Dz \n"
-         << ints.Dz << "\n\n";
-    cout << "Gx \n"
-         << ints.Gx << "\n\n";
-    cout << "Gy \n"
-         << ints.Gy << "\n\n";
-    cout << "Gz \n"
-         << ints.Gz << "\n\n";
-    cout << "CAP \n"
-         << ints.CAP << "\n\n";
+    cout << "S  \n" << ints.S << "\n\n";
+    cout << "H  \n" << ints.H << "\n\n";
+    cout << "Dx \n" << ints.Dx << "\n\n";
+    cout << "Dy \n" << ints.Dy << "\n\n";
+    cout << "Dz \n" << ints.Dz << "\n\n";
+    cout << "Gx \n" << ints.Gx << "\n\n";
+    cout << "Gy \n" << ints.Gy << "\n\n";
+    cout << "Gz \n" << ints.Gz << "\n\n";
+    cout << "CAP \n" << ints.CAP << "\n\n";
 #endif
 
     std::function<Vector3cd(const double&)> compute_filed;
+    std::function<MatrixXcd(const double&)> compute_interaction;
 
     switch (control.gauge) {
         case Gauge::length:
@@ -103,8 +86,14 @@ int main(int argc, char* argv[]) {
                 E0 *= sin(omega * time / (2 * cycles)) * sin(omega * time / (2 * cycles)) * sin(omega * time + pcep);
                 return E0;
             };
+
+            compute_interaction = [&](const double& time) {
+                const auto field = compute_filed(time);
+                return field(0) * ints.Dx + field(1) * ints.Dy + field(2) * ints.Dz;
+            };
             break;
         case Gauge::velocity:
+        case Gauge::velocity_with_Asqrt:
             compute_filed = [&](const double& time) {
                 Vector3cd E0 = control.opt_fielddir;
                 E0 /= E0.norm();
@@ -116,11 +105,34 @@ int main(int argc, char* argv[]) {
                 if (time >= cycles * 2 * M_PI / omega)
                     return Vector3cd{0, 0, 0};
 
-                E0 *= 1i / (omega * (2.0 - 2.0 / (cycles * cycles))) *
-                      (-cos(pcep) / (cycles * cycles) + (-1.0 + 1.0 / (cycles * cycles) + cos(omega * time / cycles)) * cos(omega * time + pcep) + (1.0 / cycles) * sin(omega * time / cycles) * sin(omega * time + pcep));
+                E0 *= -1.0 / (omega * (2.0 - 2.0 / (cycles * cycles))) *
+                      (-cos(pcep) / (cycles * cycles) +
+                       (-1.0 + 1.0 / (cycles * cycles) + cos(omega * time / cycles)) * cos(omega * time + pcep) +
+                       (1.0 / cycles) * sin(omega * time / cycles) * sin(omega * time + pcep));
                 return E0;
             };
+
+            switch (control.gauge) {
+                case Gauge::velocity:
+                    compute_interaction = [&](const double& time) {
+                        const auto field = compute_filed(time);
+                        return -1.0i * (field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz);
+                    };
+                    break;
+
+                case Gauge::velocity_with_Asqrt:
+                    compute_interaction = [&](const double& time) {
+                        const auto field = compute_filed(time);
+                        return -1.0i * (field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz) +
+                               ints.S * field.squaredNorm() / 2.0;
+                    };
+                    break;
+
+                default:
+                    break;
+            }
             break;
+
         default:
             throw runtime_error("Currently only length and velocity gauge are supported!");
     }
@@ -135,9 +147,9 @@ int main(int argc, char* argv[]) {
     }
 
     //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
-    VectorXcd state = es.eigenvectors().col(0);  //only the ground state
+    VectorXcd state = es.eigenvectors().col(0);  // only the ground state
     cout << "   Egenvalues of H matrix:\n"
-         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ","","","" )) << "\n\n";
+         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ", "", "", "")) << "\n\n";
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
@@ -148,13 +160,9 @@ int main(int argc, char* argv[]) {
         return dip;
     };
 
-    auto compute_norm = [&]() {
-        return sqrt(state.dot(ints.S * state).real());
-    };
+    auto compute_norm = [&]() { return sqrt(state.dot(ints.S * state).real()); };
 
-    auto compute_energy = [&]() {
-        return state.dot(ints.H * state).real();
-    };
+    auto compute_energy = [&]() { return state.dot(ints.H * state).real(); };
 
     cout << " ================= TIME PROPAGATION =================\n";
     const int steps             = std::round(control.max_t / control.dt);
@@ -167,16 +175,17 @@ int main(int argc, char* argv[]) {
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
-        const Vector3cd field = compute_filed(current_time);
         // Remove CAP if you want
-        const MatrixXcd H_t = ints.H + field(0) * ints.Gx + field(1) * ints.Gy + field(2) * ints.Gz + ints.CAP;
+        const MatrixXcd H_t = ints.H + compute_interaction(current_time) + ints.CAP;
         const MatrixXcd A   = ints.S + 1i * control.dt / 2.0 * H_t;
 
-        //const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full computations
-        const VectorXcd B = (ints.S - 1i * control.dt / 2.0 * H_t) * state;  //only the ground state
+        // const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full
+        // computations
+        const VectorXcd B = (ints.S - 1i * control.dt / 2.0 * H_t) * state;  // only the ground
+                                                                             // state
 
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
-        state = A.partialPivLu().solve(B);  //only the ground state
+        state = A.partialPivLu().solve(B);  // only the ground state
 
         const auto dip    = compute_dipole_moment();
         const auto norm   = compute_norm();

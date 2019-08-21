@@ -69,6 +69,8 @@ Control_data Control_data::parse_input_file(const std::string &input_file,
                 cd.gauge = Gauge::velocity;
             else if (gauge == "acceleration")
                 cd.gauge = Gauge::acceleration;
+            else if (gauge == "velocity_with_Asqrt")
+                cd.gauge = Gauge::velocity_with_Asqrt;
         }
     }
     {
@@ -131,26 +133,26 @@ std::map<std::string, std::vector<std::string>> Control_data::read_keys(std::ifs
 }
 
 std::ostream &operator<<(std::ostream &os, const Control_data &rhs) {
-    os << "==============================================================================\n";
-    os << "JOB_NAME                        " << rhs.job_name << '\n';
-    os << "==============================================================================\n";
-    os << "GAUGE                           " << rhs.gauge << '\n';
-    os << "REPRESENTATION                  " << rhs.representation << '\n';
-    os << "==============================================================================\n";
-    os << "OPT_INTENSITY                   " << rhs.opt_intensity << '\n';
-    os << "OPT_FIELD_DIRECTION             " << rhs.opt_fielddir.transpose() << '\n';
-    os << "OPT_OMEGA_EV                    " << rhs.opt_omega_eV << '\n';
-    os << "OPT_CARRIER_ENVELOPE            " << rhs.opt_carrier_envelope << '\n';
-    os << "OPT_CYCLES                      " << rhs.opt_cycles << '\n';
-    os << "==============================================================================\n";
-    os << "USE_CAP                         " << (rhs.use_cap ? 'Y' : 'N') << '\n';
-    os << "CAP_R0                          " << rhs.cap_r0 << '\n';
-    os << "CAP_AMPLITUDE                   " << rhs.cap_amp << '\n';
-    os << "==============================================================================\n";
-    os << "DT                              " << rhs.dt << '\n';
-    os << "MAX_T                           " << rhs.max_t << '\n';
-    os << "REGISTER_DIPOLE_DT              " << rhs.register_dip << '\n';
-    os << "==============================================================================\n";
+    os << "# ==============================================================================\n";
+    os << "# JOB_NAME                        " << rhs.job_name << '\n';
+    os << "# ==============================================================================\n";
+    os << "# GAUGE                           " << rhs.gauge << '\n';
+    os << "# REPRESENTATION                  " << rhs.representation << '\n';
+    os << "# ==============================================================================\n";
+    os << "# OPT_INTENSITY                   " << rhs.opt_intensity << '\n';
+    os << "# OPT_FIELD_DIRECTION             " << rhs.opt_fielddir.transpose() << '\n';
+    os << "# OPT_OMEGA_EV                    " << rhs.opt_omega_eV << '\n';
+    os << "# OPT_CARRIER_ENVELOPE            " << rhs.opt_carrier_envelope << '\n';
+    os << "# OPT_CYCLES                      " << rhs.opt_cycles << '\n';
+    os << "# ==============================================================================\n";
+    os << "# USE_CAP                         " << (rhs.use_cap ? 'Y' : 'N') << '\n';
+    os << "# CAP_R0                          " << rhs.cap_r0 << '\n';
+    os << "# CAP_AMPLITUDE                   " << rhs.cap_amp << '\n';
+    os << "# ==============================================================================\n";
+    os << "# DT                              " << rhs.dt << '\n';
+    os << "# MAX_T                           " << rhs.max_t << '\n';
+    os << "# REGISTER_DIPOLE_DT              " << rhs.register_dip << '\n';
+    os << "# ==============================================================================\n";
     return os;
 }
 
@@ -161,6 +163,9 @@ std::ostream &operator<<(std::ostream &os, const Gauge &rhs) {
             return os;
         case Gauge::velocity:
             os << "velocity";
+            return os;
+        case Gauge::velocity_with_Asqrt:
+            os << "velocity_with_Asqrt";
             return os;
         case Gauge::acceleration:
             os << "acceleration";

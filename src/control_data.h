@@ -12,6 +12,7 @@
 
 enum class Gauge {
     velocity,
+    velocity_with_Asqrt,
     length,
     acceleration
 };
