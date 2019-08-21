@@ -20,7 +20,7 @@ inline int get_basis_functions_count(const Control_data& data) {
     }
 }
 
-void write_result(const Control_data& control, const std::vector<std::tuple<double, Eigen::Vector3d, double, double>>& res);
+void write_result(const Control_data& control, const std::vector<std::tuple<double, Eigen::Vector3d, double, double, double>>& res);
 
 void run_preparation(const Control_data& control);
 

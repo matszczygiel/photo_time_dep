@@ -11,20 +11,21 @@
 using namespace std;
 using namespace Eigen;
 
-void write_result(const Control_data& control, const vector<tuple<double, Vector3d, double, double>>& res) {
+void write_result(const Control_data& control, const vector<tuple<double, Vector3d, double, double, double>>& res) {
     if (control.write) {
         const string res_path = control.out_path + "/" + control.out_file;
 
         ofstream outfile(res_path);
         outfile << scientific;
         outfile << control;
-        outfile << "#        time             dipx          dipy          dipz          norm        energy\n";
+        outfile << "#        time             dipx          dipy          dipz          norm        energy        <Hint>\n";
 
         for (const auto& x : res) {
             outfile << setprecision(5) << setw(13) << get<0>(x) << "   ";
             outfile << setw(14) << get<1>(x)(0) << setw(14) << get<1>(x)(1) << setw(14) << get<1>(x)(2);
             outfile << setw(14) << get<2>(x);
-            outfile << setw(14) << get<3>(x) << '\n';
+            outfile << setw(14) << get<3>(x);
+            outfile << setw(14) << get<4>(x) << '\n';
         }
 
         outfile.close();

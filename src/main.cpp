@@ -169,15 +169,17 @@ int main(int argc, char* argv[]) {
     const int register_interval = std::round(control.register_dip / control.dt);
     double current_time         = 0.0;
 
-    vector<tuple<double, Vector3d, double, double>> res;
+    vector<tuple<double, Vector3d, double, double, double>> res;
     res.reserve(steps / register_interval + 1);
-    res.emplace_back(make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy()));
+    res.emplace_back(
+        make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy(), 0.0));
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
         // Remove CAP if you want
-        const MatrixXcd H_t = ints.H + compute_interaction(current_time) + ints.CAP;
-        const MatrixXcd A   = ints.S + 1i * control.dt / 2.0 * H_t;
+        const MatrixXcd H_int = compute_interaction(current_time);
+        const MatrixXcd H_t   = ints.H + H_int + ints.CAP;
+        const MatrixXcd A     = ints.S + 1i * control.dt / 2.0 * H_t;
 
         // const MatrixXcd B     = (S - 1i * control.dt / 2.0 * H_t) * LCAO;//use for full
         // computations
@@ -187,15 +189,18 @@ int main(int argc, char* argv[]) {
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
         state = A.partialPivLu().solve(B);  // only the ground state
 
-        const auto dip    = compute_dipole_moment();
-        const auto norm   = compute_norm();
-        const auto energy = compute_energy() / norm / norm;
+        const auto dip           = compute_dipole_moment();
+        const auto norm          = compute_norm();
+        const auto energy        = compute_energy() / norm / norm;
+        const auto expectation_Hint = state.dot(H_int * state).real() / norm / norm;
+
         if (i % register_interval == 0) {
-            res.emplace_back(make_tuple(current_time, dip, norm, energy));
+            res.emplace_back(make_tuple(current_time, dip, norm, energy, expectation_Hint));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
                  << "   dipole moment: " << dip.transpose() << '\n'
                  << "   norm:          " << norm << '\n'
-                 << "   energy:        " << energy << "\n\n";
+                 << "   energy (<H0>): " << energy << "\n"
+                 << "   <Hint>:        " << expectation_Hint << "\n\n";
         }
     }
 
