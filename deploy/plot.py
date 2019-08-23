@@ -74,9 +74,9 @@ for item in open(file_velA, 'r').readlines():
     if "OPT_OMEGA_EV" in item:
             vA2_omega = float(item.split()[-1]) * ev_to_au
 
-fftfreq_len = np.fft.fftfreq(data_len[:, 0].size, data_len[1, 0] - data_len[0, 0])[0:fft_len.size] / len_omega
-fftfreq_vel = np.fft.fftfreq(data_vel[:, 0].size, data_vel[1, 0] - data_vel[0, 0])[0:fft_vel.size] / vel_omega
-fftfreq_vA2 = np.fft.fftfreq(data_vA2[:, 0].size, data_vA2[1, 0] - data_vA2[0, 0])[0:fft_vA2.size] / vA2_omega
+fftfreq_len = np.fft.rfftfreq(data_len[:, 0].size, data_len[1, 0] - data_len[0, 0]) / len_omega
+fftfreq_vel = np.fft.rfftfreq(data_vel[:, 0].size, data_vel[1, 0] - data_vel[0, 0]) / vel_omega
+fftfreq_vA2 = np.fft.rfftfreq(data_vA2[:, 0].size, data_vA2[1, 0] - data_vA2[0, 0]) / vA2_omega
 
 
 plt.clf()
