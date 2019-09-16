@@ -149,7 +149,8 @@ int main(int argc, char* argv[]) {
     //    MatrixXcd LCAO = es.eigenvectors();     //use for full computations
     VectorXcd state = es.eigenvectors().col(0);  // only the ground state
     cout << "   Egenvalues of H matrix:\n"
-         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ", "", "", "")) << "\n\n";
+         << es.eigenvalues().format(IOFormat(StreamPrecision, 0, " ", "\n", "     ", "", "", "")) << "\n\n"
+         << std::flush;
 
     auto compute_dipole_moment = [&]() {
         Vector3d dip;
@@ -171,8 +172,7 @@ int main(int argc, char* argv[]) {
 
     vector<tuple<double, Vector3d, double, double, double>> res;
     res.reserve(steps / register_interval + 1);
-    res.emplace_back(
-        make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy(), 0.0));
+    res.emplace_back(make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy(), 0.0));
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
@@ -189,9 +189,9 @@ int main(int argc, char* argv[]) {
         // LCAO           = A.partialPivLu().solve(B);//use for full computations
         state = A.partialPivLu().solve(B);  // only the ground state
 
-        const auto dip           = compute_dipole_moment();
-        const auto norm          = compute_norm();
-        const auto energy        = compute_energy() / norm / norm;
+        const auto dip              = compute_dipole_moment();
+        const auto norm             = compute_norm();
+        const auto energy           = compute_energy() / norm / norm;
         const auto expectation_Hint = state.dot(H_int * state).real() / norm / norm;
 
         if (i % register_interval == 0) {
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
                  << "   dipole moment: " << dip.transpose() << '\n'
                  << "   norm:          " << norm << '\n'
                  << "   energy (<H0>): " << energy << "\n"
-                 << "   <Hint>:        " << expectation_Hint << "\n\n";
+                 << "   <Hint>:        " << expectation_Hint << "\n\n" << std::flush;
         }
     }
 
