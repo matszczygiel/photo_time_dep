@@ -4,7 +4,7 @@
 
 
 XGTOPW_PATH="/home/mateusz/workspace/gtopw/build/Release/"
-PHOTO_TD_PATH="/home/mateusz/workspace/photo_time_dep/build/Release/"
+PHOTO_TD_PATH="/home/mateusz/workspace/photo_time_dep_dumping/build/Release/"
 
 #  change this if you wish [1 - spherical, 0 - cartesian]
 REPRESENTATION=1
@@ -24,10 +24,11 @@ INTS="$HERE/ints"
 INPS="$HERE/inps"
 PLOTS="$HERE/plots"
 LOGS="$HERE/logs"
+DUMPS="$HERE/dumps"
 SETTINGS_FILE="settings.inp"
 JOB_NAME=$1
 
-mkdir $INPS $LOGS
+mkdir $INPS $LOGS $DUMPS
 
 sed -i -e "s/^JOB_NAME .*/JOB_NAME                        ${JOB_NAME}/g" $SETTINGS_FILE
 sed -i -e "s|^RESOURCES_PATH .*|RESOURCES_PATH                        ${INTS}|g" $SETTINGS_FILE
@@ -78,6 +79,9 @@ echo " Computing propagation."
 #velocityA gauge
 sed -i -e "s|^GAUGE .*|GAUGE                        velocity_with_Asqrt|g" $SETTINGS_FILE
 sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_velA.out|g" $SETTINGS_FILE
+mkdir ${DUMPS}/velA
+sed -i -e "s|^DUMP_PATH .*|DUMP_PATH                        ${DUMPS}/velA/|g" $SETTINGS_FILE
+
 
 $PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_velA.out
 
@@ -90,6 +94,8 @@ fi
 #length gauge
 sed -i -e "s|^GAUGE .*|GAUGE                        length|g" $SETTINGS_FILE
 sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_len.out|g" $SETTINGS_FILE
+mkdir ${DUMPS}/len
+sed -i -e "s|^DUMP_PATH .*|DUMP_PATH                        ${DUMPS}/len|g" $SETTINGS_FILE
 
 $PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_len.out
 
@@ -102,6 +108,8 @@ fi
 #velocity gauge
 sed -i -e "s|^GAUGE .*|GAUGE                        velocity|g" $SETTINGS_FILE
 sed -i -e "s|^OUT_FILE .*|OUT_FILE                        res_vel.out|g" $SETTINGS_FILE
+mkdir ${DUMPS}/vel
+sed -i -e "s|^DUMP_PATH .*|DUMP_PATH                        ${DUMPS}/vel/|g" $SETTINGS_FILE
 
 $PHOTO_TD_PATH./main $SETTINGS_FILE >$LOGS/log_td_vel.out
 

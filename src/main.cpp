@@ -173,6 +173,14 @@ int main(int argc, char* argv[]) {
     vector<tuple<double, Vector3d, double, double, double>> res;
     res.reserve(steps / register_interval + 1);
     res.emplace_back(make_tuple(current_time, compute_dipole_moment(), compute_norm(), compute_energy(), 0.0));
+    if (control.dump) {
+        std::string path = control.dump_path + "/dump-0.dat";
+        std::ofstream dump{path};
+        if (!dump.is_open())
+            throw std::runtime_error("Cannot open dump file: " + path);
+
+        dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << state;
+    }
 
     for (int i = 1; i <= steps; ++i) {
         current_time += control.dt;
@@ -195,12 +203,17 @@ int main(int argc, char* argv[]) {
         const auto expectation_Hint = state.dot(H_int * state).real() / norm / norm;
 
         if (i % register_interval == 0) {
+            if (control.dump) {
+                std::ofstream dump{control.dump_path + "/dump-" + std::to_string(i) + ".dat"};
+                dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << state;
+            }
             res.emplace_back(make_tuple(current_time, dip, norm, energy, expectation_Hint));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
                  << "   dipole moment: " << dip.transpose() << '\n'
                  << "   norm:          " << norm << '\n'
                  << "   energy (<H0>): " << energy << "\n"
-                 << "   <Hint>:        " << expectation_Hint << "\n\n" << std::flush;
+                 << "   <Hint>:        " << expectation_Hint << "\n\n"
+                 << std::flush;
         }
     }
 

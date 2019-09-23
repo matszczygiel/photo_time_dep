@@ -48,6 +48,13 @@
         "mutex": "cpp",
         "numeric": "cpp",
         "thread": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "cstdarg": "cpp",
+        "iterator": "cpp",
+        "map": "cpp",
+        "memory_resource": "cpp",
+        "random": "cpp",
+        "regex": "cpp",
+        "string": "cpp"
     }
 }

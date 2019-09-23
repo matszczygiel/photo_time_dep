@@ -41,9 +41,11 @@ Control_data Control_data::parse_input_file(const std::string &input_file,
     set_unique_string("FILE_1E", cd.file1E);
     set_unique_string("OUT_FILE", cd.out_file);
     set_unique_string("OUT_PATH", cd.out_path);
+    set_unique_string("DUMP_PATH", cd.dump_path);
 
     set_unique_bool("WRITE", cd.write);
     set_unique_bool("USE_CAP", cd.use_cap);
+    set_unique_bool("DUMP", cd.dump);
 
     set_unique_double("OPT_INTENSITY", cd.opt_intensity);
     set_unique_double("OPT_OMEGA_EV", cd.opt_omega_eV);

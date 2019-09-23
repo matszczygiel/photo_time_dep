@@ -34,6 +34,8 @@ class Control_data {
     bool write{true};
     std::string out_path{};
     std::string out_file{"res.out"};
+    bool dump{false};
+    std::string dump_path{};
 
     Gauge gauge{Gauge::length};
     Representation representation{Representation::cartesian};

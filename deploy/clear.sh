@@ -8,11 +8,13 @@ INPS="$HERE/inps"
 INTS="$HERE/ints"
 LOGS="$HERE/logs"
 PLOTS="$HERE/plots"
+DUMPS="$HERE/dumps"
 SETTINGS_FILE="settings.inp"
 
 rm $HERE/res*
 cp $INPS/$SETTINGS_FILE $HERE
-rm -r $INPS $LOGS $PLOTS
+rm -r $INPS $LOGS $PLOTS $DUMPS
+
 
 if [ "$DELETE_INTS" -eq 1 ]; then
     echo " Deleting integrals."
