@@ -32,5 +32,5 @@ struct Integrals {
     Eigen::MatrixXcd CAP{};
 
     void read_from_disk(const Control_data& control);
-    void cut_linear_dependencies();
+    Eigen::MatrixXcd cut_linear_dependencies();
 };

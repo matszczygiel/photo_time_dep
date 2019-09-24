@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     cout << "CAP \n" << ints.CAP << "\n\n";
 #endif
 
-    ints.cut_linear_dependencies();
+    const auto U = ints.cut_linear_dependencies();
 
 #ifdef PHOTO_DEBUG
     cout << " Matrices after transformation\n";
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         if (!dump.is_open())
             throw std::runtime_error("Cannot open dump file: " + path);
 
-        dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << state;
+        dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << U * state;
     }
 
     for (int i = 1; i <= steps; ++i) {
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         if (i % register_interval == 0) {
             if (control.dump) {
                 std::ofstream dump{control.dump_path + "/dump-" + std::to_string(i) + ".dat"};
-                dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << state;
+                dump << "# t = " << std::scientific << current_time << '\n' << std::setprecision(5) << U * state;
             }
             res.emplace_back(make_tuple(current_time, dip, norm, energy, expectation_Hint));
             cout << " Iteration: " << i << " , time: " << current_time << '\n'
