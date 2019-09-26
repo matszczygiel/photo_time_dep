@@ -57,7 +57,7 @@ void Integrals::read_from_disk(const Control_data& control) {
     Gz  = reader.load_Gradz();
 }
 
-void Integrals::cut_linear_dependencies() {
+MatrixXcd Integrals::cut_linear_dependencies() {
     cout << " Cutting linear dependencies: \n"
          << "   Computing S matrix eigenvalues.\n";
     SelfAdjointEigenSolver<MatrixXcd> es;
@@ -90,4 +90,6 @@ void Integrals::cut_linear_dependencies() {
     Gy  = U.adjoint() * Gy * U;
     Gz  = U.adjoint() * Gz * U;
     CAP = U.adjoint() * CAP * U;
+
+    return U;
 }

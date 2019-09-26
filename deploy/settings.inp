@@ -7,6 +7,8 @@ FILE_1E                         file1E_test.F
 WRITE                           Y
 OUT_PATH                        /home/mateusz/Documents/photo/tests/
 OUT_FILE                        res.out
+DUMP                            Y
+DUMP_PATH                       /home/mateusz/Documents/photo/tests/dump/
 
 GAUGE                           length
 REPRESENTATION                  spherical
